@@ -7,6 +7,8 @@ class Instance():
         self.pclass = pclass
         self.rinst = rinst
         self.ainst = ainst
+        if(container_h < container_w):
+            container_h, container_w = container_w, container_h
         self.container_h = container_h
         self.container_w = container_w
         self.containers = []

@@ -13,56 +13,69 @@ import sys
 
 def drawRect(instance):
 
-    #print(rectangles)
+    print(len(instance.items))
 
     containers=instance.containers
 
-    patches1 = []
-    patches2 = []
-    patches3 = []
+    i=0
+    #attenzione                 ceil
+    fig, ax = plt.subplots(math.floor(math.sqrt(len(containers))), math.ceil(math.sqrt(len(containers))))
 
+    for y in ax:
+        for x in y:
+            
+            if(i < len(containers)):
+                patches1 = []
+                patches2 = []
+                patches3 = []
 
+                patches1.append(Rectangle((containers[i].x, containers[i].y), containers[i].width, containers[i].height))
 
-    for cont in containers:
-        patches1.append(Rectangle((cont.x,cont.y),cont.width,cont.height))
+                for r in containers[i].items:
+                    patches2.append(Rectangle((r.x,r.y),r.width,r.height))
 
-        for r in cont.items:
-            patches2.append(Rectangle((r.x,r.y),r.width,r.height))
+                for r in containers[i].wastemap.freerects:
+                    patches3.append(Rectangle((r.x,r.y),r.width,r.height))
+        
+                pc1 = PatchCollection(patches1, facecolor='None', alpha=1, edgecolor='blue', linewidths=3, zorder=3)
+                pc2 = PatchCollection(patches2, facecolor='red', alpha=1, edgecolor='black', zorder=2)
+                pc3 = PatchCollection(patches3, facecolor='green', alpha=1, edgecolor='green', zorder=1)    
+        
+                x.add_collection(pc1)
+                x.add_collection(pc2)
+                x.add_collection(pc3)
+        
+                #imposta coordinate visuale piano cartesiano
+                #x.set_xlim((-30,instance.container_w+30),auto=True)
+                #x.set_ylim((-30,instance.container_w+30),auto=True)
+                
+                i+=1
 
-        for r in cont.wastemap.freerects:
-            patches3.append(Rectangle((r.x,r.y),r.width,r.height))
-    
-    pc1 = PatchCollection(patches1, facecolor='None', alpha=1, edgecolor='blue', linewidths=3, zorder=3)
-    pc2 = PatchCollection(patches2, facecolor='red', alpha=1, edgecolor='black', zorder=2)
-    pc3 = PatchCollection(patches3, facecolor='green', alpha=1, edgecolor='green', zorder=1)
-    
-    fig, ax = plt.subplots(1)
-    
-    ax.add_collection(pc1)
-    ax.add_collection(pc2)
-    ax.add_collection(pc3)
-    
-    #imposta coordinate visuale piano cartesiano
-    ax.set_xlim((-100,instance.container_w+100),auto=True)
-    ax.set_ylim((-100,instance.container_w+100),auto=True)
+            x.axis('equal')
+            x.axis("off")
 
-    plt.axis('equal')
     plt.show()
 
+def rotateWide(rectangles):
+    for r in rectangles:
+        if(r.width > r.height):
+            r.rotate()
+    return rectangles
 
 def greedyShelf(instance):
     #rect_inserted = []
     rectangles = instance.items
+    rectangles = rotateWide(rectangles)
     rectangles.sort(key=lambda x: (x.height,x.width), reverse=True)#(x.h,x.w), reverse=True)
 
     cont_height = instance.container_h
 
-    sheight=rectangles[0].height	
+    sheight=rectangles[0].height    
 
-    #se il primo rettangolo sta nel bin comincio a inserire	
+    #se il primo rettangolo sta nel bin comincio a inserire 
     if(sheight <= cont_height):
         i=0
-        while i < len(rectangles):			
+        while i < len(rectangles):          
             cont=Container(instance.container_h, instance.container_w,0,0)
             instance.containers.append(cont)
 
@@ -70,12 +83,12 @@ def greedyShelf(instance):
 
             y=cont_height
 
-            while(not hlimit):						
+            while(not hlimit):                      
                 sh=Shelf(cont.width, sheight, cont.height-y)
                 cont.shelves.append(sh)
                 y-=sheight
                 
-                #finchè ci stanno inserisce rettangoli nello scaffale			
+                #finchè ci stanno inserisce rettangoli nello scaffale           
                 while(i < len(rectangles) and sh._item_fits_shelf(rectangles[i])):
                     sh.insert(rectangles[i])
                     cont.items.append(rectangles[i])
@@ -93,7 +106,7 @@ def greedyShelf(instance):
                         if y > 0:
                             #aggiunge lo spazio vuoto in alto alla wastemap
                             freeRect = FreeRectangle(cont.width, y, cont.x, cont.height-y)
-                            cont.wastemap.freerects.add(freeRect)						
+                            cont.wastemap.freerects.add(freeRect)                       
                         
                 #aggiunge lo spazio libero dello scaffale alla wastemap
                 _add_to_wastemap(cont,sh)
@@ -110,7 +123,7 @@ def _add_to_wastemap(cont,shelf):
                 freeHeight = shelf.y - item.height
                 freeX = item.x
                 freeY = item.height + shelf.vertical_offset
-                freeRect = FreeRectangle(freeWidth,	freeHeight, freeX, freeY)
+                freeRect = FreeRectangle(freeWidth, freeHeight, freeX, freeY)
                 cont.wastemap.freerects.add(freeRect)
         # Move remaining shelf width to wastemap
         if shelf.available_width > 0:
@@ -131,9 +144,9 @@ def main():
     #rectangles = []
 
     #for i in range(100):
-    #	w = random.randint(10, 50)
-    #	h = random.randint(50, 100)
-    #	rectangles.append(Item(h,w))
+    #   w = random.randint(10, 50)
+    #   h = random.randint(50, 100)
+    #   rectangles.append(Item(h,w))
 
     if len(sys.argv) > 1:
         filepath = sys.argv[1]
