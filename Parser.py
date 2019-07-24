@@ -24,22 +24,24 @@ class Instance():
 
 def parse_instance(p):
     lines = p.split("\n")
-    pclass = re.findall(".* ([0-9]+) .*", lines.pop(0))[0] # PROBLEM CLASS
-    nitems = re.findall(".* ([0-9]+) .*", lines.pop(0))[0] # N. OF ITEMS
-    rinst, ainst = re.findall(".* ([0-9]+) .* ([0-9]+) .*", lines.pop(0))[0] # RELATIVE AND ABSOLUTE N. OF INSTANCE
-    cont_h, cont_w = re.findall(".* ([0-9]+) .* ([0-9]+) .*", lines.pop(0))[0] # HBIN,WBIN
+    if len(lines) > 4:
+        pclass = re.findall(".* ([0-9]+) .*", lines.pop(0))[0] # PROBLEM CLASS
+        nitems = re.findall(".* ([0-9]+) .*", lines.pop(0))[0] # N. OF ITEMS
+        rinst, ainst = re.findall(".* ([0-9]+) .* ([0-9]+) .*", lines.pop(0))[0] # RELATIVE AND ABSOLUTE N. OF INSTANCE
+        cont_h, cont_w = re.findall(".* ([0-9]+) .* ([0-9]+) .*", lines.pop(0))[0] # HBIN,WBIN
 
-    new_instance = Instance(pclass, rinst, ainst, int(cont_h), int(cont_w))
+        new_instance = Instance(pclass, rinst, ainst, int(cont_h), int(cont_w))
 
-    for l in lines:
-        ih, iw = re.findall(".* ([0-9]+) .* ([0-9]+).*", l)[0]
-        new_instance.addItem(int(ih), int(iw))
+        for l in lines:
+            ih, iw = re.findall(".* ([0-9]+) .* ([0-9]+).*", l)[0]
+            new_instance.addItem(int(ih), int(iw))
 
-    if len(new_instance.items) != int(nitems):
-        raise Exception("[Parser] Il numero di item non corrisponde! Letti: "+str(len(new_instance.items))+ ", Attesi: " + nitems)
+        if len(new_instance.items) != int(nitems):
+            raise Exception("[Parser] Il numero di item non corrisponde! Letti: "+str(len(new_instance.items))+ ", Attesi: " + nitems)
 
-    return new_instance
-
+        return new_instance
+    else:
+        return None
 
 def parse(filepath):
     instances = []
@@ -51,11 +53,13 @@ def parse(filepath):
 
     for p in problems:
         
-        try:
-            new_instance = parse_instance(p)
+        #try:
+        new_instance = parse_instance(p)
+        if new_instance:
             instances.append(new_instance)
-        except Exception:
-            pass
+        #except Exception as e:
+        #    print(e)
+            
 
     return instances
 

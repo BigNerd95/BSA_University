@@ -11,21 +11,26 @@ import Parser
 import sys
 
 
-def drawRect(cont):
+def drawRect(instance):
 
 	#print(rectangles)
+
+	containers=instance.containers
 
 	patches1 = []
 	patches2 = []
 	patches3 = []
 
-	patches1.append(Rectangle((cont.x,cont.y),cont.width,cont.height))
 
-	for r in cont.items:
-		patches2.append(Rectangle((r.x,r.y),r.width,r.height))
 
-	for r in cont.wastemap.freerects:
-		patches3.append(Rectangle((r.x,r.y),r.width,r.height))
+	for cont in containers:
+		patches1.append(Rectangle((cont.x,cont.y),cont.width,cont.height))
+
+		for r in cont.items:
+			patches2.append(Rectangle((r.x,r.y),r.width,r.height))
+
+		for r in cont.wastemap.freerects:
+			patches3.append(Rectangle((r.x,r.y),r.width,r.height))
 	
 	pc1 = PatchCollection(patches1, facecolor='None', alpha=1, edgecolor='b')
 	pc2 = PatchCollection(patches2, facecolor='None', alpha=1, edgecolor='r')
@@ -38,54 +43,58 @@ def drawRect(cont):
 	ax.add_collection(pc3)
 	
 	#imposta coordinate visuale piano cartesiano
-	ax.set_xlim((-100,cont.width+100),auto=True)
-	ax.set_ylim((-100,cont.height+100),auto=True)
-	
+	ax.set_xlim((-100,instance.container_w+100),auto=True)
+	ax.set_ylim((-100,instance.container_w+100),auto=True)
 	plt.show()
 
-#def intraNeighborhood(cont):
 
-
-def greedyShelf(cont, rectangles):
+def greedyShelf(instance):
 	#rect_inserted = []
+	rectangles = instance.items
 	rectangles.sort(key=lambda x: (x.height,x.width), reverse=True)#(x.h,x.w), reverse=True)
 
-	sheight=rectangles[0].height
+	cont_height = instance.container_h
 
-	hlimit=False
+	sheight=rectangles[0].height	
 
-	y=cont.height
-	i=0
+	#se il primo rettangolo sta nel bin comincio a inserire	
+	if(sheight <= cont_height):
+		i=0
+		while i < len(rectangles):			
+			cont=Container(instance.container_h, instance.container_w,0,0)
+			instance.containers.append(cont)
 
-	#se il primo rettangolo sta nel bin comincio a inserire
-	if(sheight <= cont.height):
-		while(not hlimit):						
-			sh=Shelf(cont.width, sheight, cont.height-y)
-			cont.shelves.append(sh)
-			y-=sheight
-			
-			#finchè ci stanno inserisce rettangoli nello scaffale			
-			while(i < len(rectangles) and sh._item_fits_shelf(rectangles[i])):
-				sh.insert(rectangles[i])
-				cont.items.append(rectangles[i])
-				i+=1
-			
-			#controlla se sono finiti i rettangoli oppure se lo scaffale nuovo supererebbe l'altezza massima
-			if i >= len(rectangles):
-				hlimit=True
-			else:
-				sheight=rectangles[i].height
+			hlimit=False
+
+			y=cont_height
+
+			while(not hlimit):						
+				sh=Shelf(cont.width, sheight, cont.height-y)
+				cont.shelves.append(sh)
+				y-=sheight
 				
-				if y - sheight <= 0:
+				#finchè ci stanno inserisce rettangoli nello scaffale			
+				while(i < len(rectangles) and sh._item_fits_shelf(rectangles[i])):
+					sh.insert(rectangles[i])
+					cont.items.append(rectangles[i])
+					i+=1
+				
+				#controlla se sono finiti i rettangoli oppure se lo scaffale nuovo supererebbe l'altezza massima
+				if i >= len(rectangles):
 					hlimit=True
-
-					if y > 0:
-						#aggiunge lo spazio vuoto in alto alla wastemap
-						freeRect = FreeRectangle(cont.width, y, cont.x, cont.height-y)
-						cont.wastemap.freerects.add(freeRect)						
+				else:
+					sheight=rectangles[i].height
 					
-			#aggiunge lo spazio libero dello scaffale alla wastemap
-			_add_to_wastemap(cont,sh)
+					if y - sheight <= 0:
+						hlimit=True
+	
+						if y > 0:
+							#aggiunge lo spazio vuoto in alto alla wastemap
+							freeRect = FreeRectangle(cont.width, y, cont.x, cont.height-y)
+							cont.wastemap.freerects.add(freeRect)						
+						
+				#aggiunge lo spazio libero dello scaffale alla wastemap
+				_add_to_wastemap(cont,sh)
 	else:
 		raise Exception("Rettangolo più alto non sta nel bin")
 	#return rect_inserted,wastemap,shelves
@@ -132,11 +141,11 @@ def main():
 		#rectangles.append(Rect(0,0,h,w))
 
 		#wastemap = Guillotine(0, 0, rotation = False, heuristic='best_area')
-		cont=Container(instances[0].container_h,instances[0].container_w,0,0)
-		instances[0].containers.append(cont)
-		greedyShelf(cont, instances[0].items)
+		#print(len(instances))
+		greedyShelf(instances[0])
+		#greedyShelf(cont, instances[0].items)
 
-		drawRect(cont)
+		drawRect(instances[0])
 	else:
 		print("Manca argomento")
 
