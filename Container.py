@@ -1,7 +1,6 @@
-"""
-2D Item class.
-"""
-class Item:
+from Guillotine import Guillotine
+
+class Container:
     """
     Items class for rectangles inserted into sheets
     """
@@ -13,6 +12,9 @@ class Item:
         self.area = self.width * self.height
         self.rotated = rotated
         self.id = 0
+        self.items = []
+        self.shelves = []
+        self.wastemap = Guillotine(0, 0, rotation = False, heuristic='best_area')
 
 
     def __repr__(self):
