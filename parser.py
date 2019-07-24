@@ -1,27 +1,6 @@
 import re
 import sys
-
-class Item:
-    def __init__(self, width, height, x = 0, y = 0, rotation = True):
-        self.width = width
-        self.height = height
-        self.x = x
-        self.y = y
-        self.area = self.width * self.height
-        self.rotated = False
-        self.id = 0
-
-
-    def __repr__(self):
-        return 'Item(width=%r, height=%r, x=%r, y=%r)' % (self.width, self.height, self.x, self.y)
-
-
-    def rotate(self):
-        self.width, self.height = self.height, self.width
-        self.rotated = False if self.rotated == True else True
-
-class Container(Item):
-    pass
+from Item import Item
 
 class Instance():
     def __init__(self, pclass, rinst, ainst, container_h, container_w):

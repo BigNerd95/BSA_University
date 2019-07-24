@@ -7,6 +7,9 @@ from Guillotine import FreeRectangle
 from Item import Item
 from Container import Container
 from Shelf import Shelf
+import Parser
+import sys
+
 
 def drawRect(cont):
 
@@ -83,7 +86,8 @@ def greedyShelf(cont, rectangles):
 					
 			#aggiunge lo spazio libero dello scaffale alla wastemap
 			_add_to_wastemap(cont,sh)
-
+	else:
+		raise Exception("Rettangolo più alto non sta nel bin")
 	#return rect_inserted,wastemap,shelves
 
 def _add_to_wastemap(cont,shelf):
@@ -111,21 +115,30 @@ def _add_to_wastemap(cont,shelf):
 		cont.wastemap.rectangle_merge()
 
 def main():
-	cont=Container(500,500,0,0)
 	
-	rectangles = []
+	
+	#rectangles = []
 
-	for i in range(100):
-		w = random.randint(10, 50)
-		h = random.randint(50, 100)
-		rectangles.append(Item(h,w))
+	#for i in range(100):
+	#	w = random.randint(10, 50)
+	#	h = random.randint(50, 100)
+	#	rectangles.append(Item(h,w))
+
+	if len(sys.argv) > 1:
+		filepath = sys.argv[1]
+		instances = Parser.parse(filepath)
+		#for i in instances:
+		#    print(i)
 		#rectangles.append(Rect(0,0,h,w))
 
-	#wastemap = Guillotine(0, 0, rotation = False, heuristic='best_area')
+		#wastemap = Guillotine(0, 0, rotation = False, heuristic='best_area')
+		cont=Container(instances[0].container_h,instances[0].container_w,0,0)
+		instances[0].containers.append(cont)
+		greedyShelf(cont, instances[0].items)
 
-	greedyShelf(cont, rectangles)
-
-	drawRect(cont)
+		drawRect(cont)
+	else:
+		print("Manca argomento")
 
 if __name__ == '__main__':
 		main()
