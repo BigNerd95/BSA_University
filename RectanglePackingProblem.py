@@ -56,7 +56,10 @@ def drawRect(instance):
                 x.axis('equal')
                 x.axis("off")
 
-    plt.show()
+    plt.title("Problem "+instance.rinst)
+    plt.show(block=True)
+    #plt.pause(0.5)
+    #plt.close()
 
 def rotateWide(rectangles):
     for r in rectangles:
@@ -72,25 +75,24 @@ def greedyShelf(instance):
 
     cont_height = instance.container_h
 
-    sheight=rectangles[0].height    
+    shelf_height=rectangles[0].height    
 
     #se il primo rettangolo sta nel bin comincio a inserire 
-    if(sheight <= cont_height):
-        i=0
-        offset1 =0
+    if(shelf_height <= cont_height):
+        i=0        
         while i < len(rectangles):          
             cont=Container(instance.container_h, instance.container_w,0,0)
             instance.containers.append(cont)
 
             hlimit=False
 
-            y=cont_height
+            available_height=cont_height
             
             while(not hlimit):                      
                 
-                sh=Shelf(cont.width, sheight, cont.height-y)
+                sh=Shelf(cont.width, shelf_height, cont.height-available_height)
                 cont.shelves.append(sh)
-                y-=sheight
+                available_height-=shelf_height
                 
                 #finchè ci stanno inserisce rettangoli nello scaffale           
                 while(i < len(rectangles) and sh._item_fits_shelf(rectangles[i])):
@@ -100,23 +102,21 @@ def greedyShelf(instance):
                 
                 #controlla se sono finiti i rettangoli oppure se lo scaffale nuovo supererebbe l'altezza massima
                 if i >= len(rectangles):
-
                     hlimit=True
                 else:
                     
-                    sheight=rectangles[i].height
+                    shelf_height = rectangles[i].height
                     
-                    if y - sheight <= 0:
+                    if available_height < shelf_height:
                         hlimit=True
                         #print(y)
                 
-                if y - sheight <= 0:
-                    #print("xxx", y)
+                if available_height < shelf_height or i >= len(rectangles):
                     #aggiunge lo spazio vuoto in alto alla wastemap
-                    freeRect = FreeRectangle(cont.width, y, cont.x, cont.height-y+offset1)
+                    freeRect = FreeRectangle(cont.width, available_height, cont.x, cont.height-available_height)
                     cont.wastemap.freerects.add(freeRect)
                     #print(i)
-                    #offset1 += 10
+                    
                       
                 #aggiunge lo spazio libero dello scaffale alla wastemap
                 _add_to_wastemap(cont,sh)
@@ -167,10 +167,17 @@ def main():
 
         #wastemap = Guillotine(0, 0, rotation = False, heuristic='best_area')
         #print(len(instances))
-        greedyShelf(instances[0])
-        #greedyShelf(cont, instances[0].items)
 
-        drawRect(instances[0])
+        #print(instances[9])
+        #greedyShelf(instances[9])
+        #drawRect(instances[9])
+        instances = instances[40:41]
+
+        for instance in instances:
+            print(instance)
+            greedyShelf(instance)
+            drawRect(instance)
+            
     else:
         print("Manca argomento")
 
