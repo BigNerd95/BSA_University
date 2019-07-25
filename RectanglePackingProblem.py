@@ -37,7 +37,6 @@ def drawRect(instance):
 
     containers=instance.containers
 
-    
 
     #attenzione                 ceil
     fig, ax = plt.subplots(math.floor(math.sqrt(len(containers))), math.ceil(math.sqrt(len(containers))))
@@ -56,7 +55,7 @@ def drawRect(instance):
                 x.axis('equal')
                 x.axis("off")
 
-    plt.title("Problem "+instance.rinst)
+    fig.suptitle("Used Bins: "+str(len(containers))+"    Global wasted area: "+ str(math.floor(instance.wastedArea()))+"%")
     plt.show(block=True)
     #plt.pause(0.5)
     #plt.close()

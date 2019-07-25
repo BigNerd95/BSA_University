@@ -17,6 +17,17 @@ class Instance():
     def addItem(self, item_h, item_w):
         self.items.append(Item(item_w, item_h))
 
+    def wastedArea(self):
+        freeArea = 0
+        containerArea = self.container_h*self.container_w*len(self.containers)
+        
+        for c in self.containers:
+            #print(c.wastemap.free_area)
+            for r in c.wastemap.freerects:
+                freeArea+=r.area
+
+        return freeArea/containerArea*100
+
     def __str__(self):
         s  = "Instance Class: " + self.pclass + ", Relative N: " + self.rinst + ", Absolute N: " + self.ainst + "\n"
         s += "Item number: " + str(len(self.items)) + "\n"
