@@ -10,49 +10,51 @@ from Shelf import Shelf
 import Parser
 import sys
 
+def draw_bin(container, x):
+    patches1 = []
+    patches2 = []
+    patches3 = []
+
+    patches1.append(Rectangle((container.x, container.y), container.width, container.height))
+
+    for r in container.items:
+        patches2.append(Rectangle((r.x,r.y),r.width,r.height))
+
+    for r in container.wastemap.freerects:
+        patches3.append(Rectangle((r.x,r.y),r.width,r.height))
+
+    pc1 = PatchCollection(patches1, facecolor='None', alpha=1, edgecolor='blue', linewidths=3, zorder=3)
+    pc2 = PatchCollection(patches2, facecolor='red', alpha=1, edgecolor='black', zorder=1)
+    pc3 = PatchCollection(patches3, facecolor='green', alpha=1, edgecolor='black', zorder=2)    
+
+    x.add_collection(pc1)
+    x.add_collection(pc2)
+    x.add_collection(pc3)
 
 def drawRect(instance):
 
-    print(len(instance.items))
+    #print(len(instance.items))
 
     containers=instance.containers
 
-    i=0
+    
+
     #attenzione                 ceil
     fig, ax = plt.subplots(math.floor(math.sqrt(len(containers))), math.ceil(math.sqrt(len(containers))))
-
-    for y in ax:
-        for x in y:
-            
-            if(i < len(containers)):
-                patches1 = []
-                patches2 = []
-                patches3 = []
-
-                patches1.append(Rectangle((containers[i].x, containers[i].y), containers[i].width, containers[i].height))
-
-                for r in containers[i].items:
-                    patches2.append(Rectangle((r.x,r.y),r.width,r.height))
-
-                for r in containers[i].wastemap.freerects:
-                    patches3.append(Rectangle((r.x,r.y),r.width,r.height))
-        
-                pc1 = PatchCollection(patches1, facecolor='None', alpha=1, edgecolor='blue', linewidths=3, zorder=3)
-                pc2 = PatchCollection(patches2, facecolor='red', alpha=1, edgecolor='black', zorder=2)
-                pc3 = PatchCollection(patches3, facecolor='green', alpha=1, edgecolor='green', zorder=1)    
-        
-                x.add_collection(pc1)
-                x.add_collection(pc2)
-                x.add_collection(pc3)
-        
-                #imposta coordinate visuale piano cartesiano
-                #x.set_xlim((-30,instance.container_w+30),auto=True)
-                #x.set_ylim((-30,instance.container_w+30),auto=True)
-                
-                i+=1
-
-            x.axis('equal')
-            x.axis("off")
+    
+    if len(containers) == 1:
+        draw_bin(containers[0], ax)
+        ax.axis('equal')
+        ax.axis("off")
+    else:
+        i=0
+        for y in ax:
+            for x in y:
+                if(i < len(containers)):
+                    draw_bin(containers[i], x)
+                    i+=1
+                x.axis('equal')
+                x.axis("off")
 
     plt.show()
 
@@ -75,6 +77,7 @@ def greedyShelf(instance):
     #se il primo rettangolo sta nel bin comincio a inserire 
     if(sheight <= cont_height):
         i=0
+        offset1 =0
         while i < len(rectangles):          
             cont=Container(instance.container_h, instance.container_w,0,0)
             instance.containers.append(cont)
@@ -82,8 +85,9 @@ def greedyShelf(instance):
             hlimit=False
 
             y=cont_height
-
+            
             while(not hlimit):                      
+                
                 sh=Shelf(cont.width, sheight, cont.height-y)
                 cont.shelves.append(sh)
                 y-=sheight
@@ -96,18 +100,24 @@ def greedyShelf(instance):
                 
                 #controlla se sono finiti i rettangoli oppure se lo scaffale nuovo supererebbe l'altezza massima
                 if i >= len(rectangles):
+
                     hlimit=True
                 else:
+                    
                     sheight=rectangles[i].height
                     
                     if y - sheight <= 0:
                         hlimit=True
-    
-                        if y > 0:
-                            #aggiunge lo spazio vuoto in alto alla wastemap
-                            freeRect = FreeRectangle(cont.width, y, cont.x, cont.height-y)
-                            cont.wastemap.freerects.add(freeRect)                       
-                        
+                        #print(y)
+                
+                if y - sheight <= 0:
+                    #print("xxx", y)
+                    #aggiunge lo spazio vuoto in alto alla wastemap
+                    freeRect = FreeRectangle(cont.width, y, cont.x, cont.height-y+offset1)
+                    cont.wastemap.freerects.add(freeRect)
+                    #print(i)
+                    #offset1 += 10
+                      
                 #aggiunge lo spazio libero dello scaffale alla wastemap
                 _add_to_wastemap(cont,sh)
     else:
