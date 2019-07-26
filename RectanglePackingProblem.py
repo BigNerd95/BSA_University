@@ -31,7 +31,7 @@ def draw_bin(container, x):
     x.add_collection(pc2)
     x.add_collection(pc3)
 
-def drawRect(instance):
+def drawRect(instance, block):
 
     #print(len(instance.items))
 
@@ -56,9 +56,81 @@ def drawRect(instance):
                 x.axis("off")
 
     fig.suptitle("Used Bins: "+str(len(containers))+"    Global wasted area: "+ str(math.floor(instance.wastedArea()))+"%")
-    plt.show(block=True)
+    plt.show(block)
+
     #plt.pause(0.5)
     #plt.close()
+
+def shiftAll(rect, shelf, container):
+    for r in shelf.items:
+        if(r.x > rect.x):
+            if(r.y + r.height < shelf.vertical_offset+shelf.height):                
+                freeRect=getTopFreeRect(r, container)
+                if(freeRect):
+                    #print("getTopFreeRect")
+                    freeRect.x-=rect.width
+            r.x-=rect.width
+
+    #lo scaffale non è pieno quindi c'è un rettangolo libero da estendere
+    if(shelf.available_width > 0):
+        #last_rect = shelf.items[len(shelf.items)-1]
+        #shelf.width - last_rect.x + last_rect.width
+        freeRect=getShelfFreeRect(shelf, container)
+
+        shelf.available_width += rect.width
+
+        freeRect.x=shelf.width-shelf.available_width
+        freeRect.width+=rect.width
+
+    else:#lo scaffale era pieno, quindi non c'è il rettangolo libero allora lo creo
+        freeRect = FreeRectangle(rect.width, shelf.height, shelf.width-rect.width, shelf.vertical_offset)
+        container.wastemap.freerects.add(freeRect)
+        shelf.available_width+=rect.width
+
+def moveRect(rect, freeRect, shelf, container):
+    shiftAll(rect, shelf, container)
+    rect.x=freeRect.x
+    rect.y=freeRect.y
+
+    freerects = container.wastemap._split_free_rect(rect, freeRect)
+    for r in freerects:
+        container.wastemap.freerects.add(r)
+    container.wastemap.freerects.remove(freeRect)
+
+def getTopFreeRect(rect, container):
+    for r in container.wastemap.freerects:
+        if(rect.x==r.x and rect.y+rect.height==r.y):
+            return r
+
+def getShelfFreeRect(shelf, container):
+    for r in container.wastemap.freerects:
+        if(r.x == shelf.width - shelf.available_width and r.y==shelf.vertical_offset):
+            return r
+
+def intraNeighborhood(instance):
+    #best_height = 0
+    best_width = 0
+    best = None
+
+    for container in instance.containers:             
+        for i in range(0, len(container.shelves)-1): 
+            
+            freeRect=getShelfFreeRect(container.shelves[i],container)
+
+            if(freeRect):
+                for r in container.shelves[i+1].items:
+                    if(r.width <= freeRect.width and r.width > best_width):
+                        best=r
+                        best_width=r.width
+
+                if(best!=None):
+                    moveRect(best, freeRect, container.shelves[i+1], container)
+                    best=None
+                    best_width=0
+            #else:
+                #print("Non c'è il free rect")
+
+        container.wastemap.rectangle_merge()
 
 def rotateWide(rectangles):
     for r in rectangles:
@@ -127,9 +199,9 @@ def _add_to_wastemap(cont,shelf):
         """ Add lost space above items to the wastemap """
         # Add space above items to wastemap
         for item in shelf.items:
-            if item.height < shelf.y:
+            if item.height < shelf.height:
                 freeWidth = item.width
-                freeHeight = shelf.y - item.height
+                freeHeight = shelf.height - item.height
                 freeX = item.x
                 freeY = item.height + shelf.vertical_offset
                 freeRect = FreeRectangle(freeWidth, freeHeight, freeX, freeY)
@@ -137,13 +209,13 @@ def _add_to_wastemap(cont,shelf):
         # Move remaining shelf width to wastemap
         if shelf.available_width > 0:
             freeWidth = shelf.available_width
-            freeHeight = shelf.y
+            freeHeight = shelf.height
             freeX = cont.width - shelf.available_width
             freeY = shelf.vertical_offset
             freeRect = FreeRectangle(freeWidth, freeHeight, freeX, freeY)
             cont.wastemap.freerects.add(freeRect)
         # Close Shelf
-        shelf.available_width = 0
+        #shelf.available_width = 0
         # Merge rectangles in wastemap
         cont.wastemap.rectangle_merge()
 
@@ -170,12 +242,14 @@ def main():
         #print(instances[9])
         #greedyShelf(instances[9])
         #drawRect(instances[9])
-        instances = instances[40:41]
+        instances = instances[13:14]
 
         for instance in instances:
             print(instance)
             greedyShelf(instance)
-            drawRect(instance)
+            drawRect(instance,False)
+            intraNeighborhood(instance)
+            drawRect(instance,True)
             
     else:
         print("Manca argomento")

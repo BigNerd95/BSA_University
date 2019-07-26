@@ -15,11 +15,11 @@ from sortedcontainers import SortedListWithKey # type: ignore
 from Item import Item
 
 
-class FreeRectangle(typing.NamedTuple('FreeRectangle', [('width', int), ('height', int), ('x', int), ('y', int)])):
+class FreeRectangle(Item):#typing.NamedTuple('FreeRectangle', [('width', int), ('height', int), ('x', int), ('y', int)])):
     __slots__ = ()
-    @property
-    def area(self):
-        return self.width*self.height
+    #@property
+    #def area(self):
+     #   return self.width*self.height
 
 
 class Guillotine:
