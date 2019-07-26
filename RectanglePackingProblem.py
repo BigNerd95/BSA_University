@@ -1,4 +1,6 @@
 import matplotlib.pyplot as plt
+plt.rcParams['toolbar'] = 'toolmanager'
+from matplotlib.backend_tools import ToolBase, ToolToggleBase
 from matplotlib.patches import Rectangle
 from matplotlib.collections import PatchCollection
 import random
@@ -10,6 +12,11 @@ from Shelf import Shelf
 import Parser
 import sys
 
+def label(rect, text, bin):
+    x = rect.get_x() + rect.get_width()/2
+    y = rect.get_y() + rect.get_height()/2
+    bin.text(x, y, text, ha="center", va='center', family='sans-serif', size=6)
+
 def draw_bin(container, x):
     patches1 = []
     patches2 = []
@@ -18,7 +25,9 @@ def draw_bin(container, x):
     patches1.append(Rectangle((container.x, container.y), container.width, container.height))
 
     for r in container.items:
-        patches2.append(Rectangle((r.x,r.y),r.width,r.height))
+        new_rect = Rectangle((r.x,r.y), r.width, r.height, label="x")
+        patches2.append(new_rect)
+        label(new_rect, r.id, x)
 
     for r in container.wastemap.freerects:
         patches3.append(Rectangle((r.x,r.y),r.width,r.height))
@@ -31,7 +40,8 @@ def draw_bin(container, x):
     x.add_collection(pc2)
     x.add_collection(pc3)
 
-def drawRect(instance):
+def drawRect(fig, instance):
+    fig.clear()
 
     #print(len(instance.items))
 
@@ -39,7 +49,7 @@ def drawRect(instance):
 
 
     #attenzione                 ceil
-    fig, ax = plt.subplots(math.floor(math.sqrt(len(containers))), math.ceil(math.sqrt(len(containers))))
+    ax = fig.subplots(math.floor(math.sqrt(len(containers))), math.ceil(math.sqrt(len(containers))))
     
     if len(containers) == 1:
         draw_bin(containers[0], ax)
@@ -55,7 +65,11 @@ def drawRect(instance):
                 x.axis('equal')
                 x.axis("off")
 
-    fig.suptitle("Used Bins: "+str(len(containers))+"    Global wasted area: "+ str(math.floor(instance.wastedArea()))+"%")
+    fig.suptitle("Used Bins: "+str(len(containers))+"    Lower bound: "+str(math.floor(instance.binLowerBound()))+"    Global wasted area: "+ str(math.floor(instance.wastedArea()))+"%")
+    
+
+    #fig.canvas.manager.toolbar.add_tool(tm.get_tool("newtool"), "toolgroup")
+
     plt.show(block=True)
     #plt.pause(0.5)
     #plt.close()
@@ -147,6 +161,39 @@ def _add_to_wastemap(cont,shelf):
         # Merge rectangles in wastemap
         cont.wastemap.rectangle_merge()
 
+def genGUI():
+    fig = plt.figure()
+    #fig.canvas.manager.toolbar._Button("PREVIOUS", "back_large", <ACTION_PREV>)
+    #fig.canvas.manager.toolbar._Button("NEXT", "forward_large", <ACTION_NEXT>)
+    fig.show()
+
+class mycallback(ToolBase):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def trigger(self, *args, **kwargs):
+        global fig
+        fig.clear()
+        plt.show()
+        print("welaaa")
+
+class nextInstance(ToolBase):
+
+    def __init__(self, *args, instances, **kwargs):
+        self.instances = instances
+        self.counter = 0
+        super().__init__(*args, **kwargs)
+
+    def trigger(self, *args, **kwargs):
+        global fig
+        instance = self.instances[self.counter]
+        self.counter += 1
+        print(instance)
+        greedyShelf(instance)
+        drawRect(fig, instance) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+
+
 def main():
     
     
@@ -170,12 +217,23 @@ def main():
         #print(instances[9])
         #greedyShelf(instances[9])
         #drawRect(instances[9])
-        instances = instances[40:41]
 
-        for instance in instances:
-            print(instance)
-            greedyShelf(instance)
-            drawRect(instance)
+        #instances = instances[40:41]
+
+        global fig
+        fig = plt.figure()
+        fig.canvas.manager.toolmanager.add_tool('Neigh 1', mycallback)
+        fig.canvas.manager.toolmanager.add_tool('Neigh 2', mycallback)
+        fig.canvas.manager.toolbar.add_tool('Neigh 1', 'neigh')
+        fig.canvas.manager.toolbar.add_tool('Neigh 2', 'neigh')
+        fig.canvas.manager.toolmanager.add_tool('Next instance', nextInstance, instances=instances)
+        fig.canvas.manager.toolbar.add_tool('Next instance', 'instance')
+        plt.show()
+
+        #for instance in instances:
+        #    print(instance)
+        #    greedyShelf(instance)
+        #    drawRect(fig, instance)
             
     else:
         print("Manca argomento")

@@ -3,6 +3,7 @@ import sys
 from Item import Item
 
 class Instance():
+
     def __init__(self, pclass, rinst, ainst, container_h, container_w):
         self.pclass = pclass
         self.rinst = rinst
@@ -11,15 +12,18 @@ class Instance():
             container_h, container_w = container_w, container_h
         self.container_h = container_h
         self.container_w = container_w
+        self.container_area = self.container_h * self.container_w
         self.containers = []
         self.items = []
+        self.itemID = -1
 
     def addItem(self, item_h, item_w):
-        self.items.append(Item(item_w, item_h))
+        self.itemID += 1
+        self.items.append(Item(item_w, item_h, id=self.itemID))
 
     def wastedArea(self):
         freeArea = 0
-        containerArea = self.container_h*self.container_w*len(self.containers)
+        containerArea = self.container_area*len(self.containers)
         
         for c in self.containers:
             #print(c.wastemap.free_area)
@@ -27,6 +31,13 @@ class Instance():
                 freeArea+=r.area
 
         return freeArea/containerArea*100
+
+    def binLowerBound(self):
+        tot_area = 0
+        for i in self.items:
+            tot_area += i.area
+
+        return tot_area/self.container_area
 
     def __str__(self):
         s  = "Instance Class: " + self.pclass + ", Relative N: " + self.rinst + ", Absolute N: " + self.ainst + "\n"
