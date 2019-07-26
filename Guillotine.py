@@ -158,6 +158,7 @@ class Guillotine:
             if matching_widths:
                 widths_adjacent = list(filter(lambda r: r.y == freerect.y + freerect.height, matching_widths)) # type: List[FreeRectangle]
 
+                print("LEN widths_adjacent", len(widths_adjacent))
                 if widths_adjacent:
                     match_rect = widths_adjacent[0]
                     merged_rect = FreeRectangle(freerect.width,
@@ -170,6 +171,7 @@ class Guillotine:
 
             if matching_heights:
                 heights_adjacent = list(filter(lambda r: r.x == freerect.x + freerect.width, matching_heights))
+                print("LEN heights_adjacent", len(heights_adjacent))
                 if heights_adjacent:
                     match_rect = heights_adjacent[0]
                     merged_rect = FreeRectangle(freerect.width+match_rect.width,

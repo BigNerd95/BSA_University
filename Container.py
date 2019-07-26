@@ -1,4 +1,4 @@
-from Guillotine import Guillotine
+#from Guillotine import Guillotine
 from Item import Item
 
 class Container(Item):
@@ -9,4 +9,5 @@ class Container(Item):
         super(Container,self).__init__(width, height)        
         self.items = []
         self.shelves = []
-        self.wastemap = Guillotine(0, 0, rotation = False, heuristic='best_area')
+        #self.wastemap = Guillotine(0, 0, rotation = False, heuristic='best_area')
+        self.available_height=height

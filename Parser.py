@@ -16,6 +16,7 @@ class Instance():
         
         self.containers = []
         self.items = []
+        self.shelves=[]
         self.itemID = -1
         self.greedyDone = False
 
@@ -34,8 +35,9 @@ class Instance():
         
         for c in self.containers:
             #print(c.wastemap.free_area)
-            for r in c.wastemap.freerects:
-                freeArea+=r.area
+            for s in c.shelves:
+                for r in s.wastemap.freerects:
+                    freeArea+=r.area
 
         return freeArea/containerArea*100
 
