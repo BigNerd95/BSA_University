@@ -192,12 +192,13 @@ def intraNeighborhood(instance):
             container.shelves[i+1].wastemap.rectangle_merge()
             #container.shelves[i+1].wastemap.rectangle_merge()
 
-"""
+
 def getContainerShelf(containers, shelf):
-    for container in container:
-        if(shelf in containers.shelves):
+    for container in containers:
+        if(shelf in container.shelves):
             return container
 
+#quello che sta in items2 viene tolto da items1
 def removeItems(items1, items2):
     for item in items2:
         if(item in items1):
@@ -205,35 +206,129 @@ def removeItems(items1, items2):
 
 def updateShelfRectangles(container, shelf):
     #aggiornare solo ordinate
-    for r in shelf.items:
-        r.y=container.height-available_height
+    old_offset = shelf.vertical_offset
+    shelf.vertical_offset = container.height-container.available_height#+shelf.vertical_offset
 
-def moveShelf(container1, container2, shelf):
+    for r in shelf.items:
+        r.y = r.y - old_offset + shelf.vertical_offset
+
+    for r in shelf.wastemap.freerects:
+        r.y = r.y - old_offset + shelf.vertical_offset
+
+def compactShelves(container, instance):
+    #y=0
+
+    emptyShelves = []
+    container.available_height = container.height
+    container.shelves.sort(key=lambda x: (x.height), reverse=True)
+
+    for shelf in container.shelves:
+        if(len(shelf.items) > 0):
+            updateShelfRectangles(container, shelf)
+            #shelf.vertical_offset=container.height - container.available_height#y
+            
+            #y+=shelf.height
+            container.available_height-=shelf.height
+        else:
+            emptyShelves.append(shelf)
+
+    removeItems(container.shelves, emptyShelves)
+
+    FreeShelf = Shelf(container.width, container.available_height, container.height-container.available_height)
+    freeRect = FreeRectangle(container.width, FreeShelf.height, container.x, FreeShelf.vertical_offset)
+    FreeShelf.wastemap.freerects.add(freeRect)
+    container.shelves.append(FreeShelf)
+    instance.shelves.append(FreeShelf)
+    #GESTIRE SCAFFALI VUOTI UNIRLI
+    #for shelf in emptyShelves:
+        #shelf.vertical_offset=y
+        #updateShelfRectangles(container, shelf)
+        #y+=shelf.height
+def redimLastShelf(container, instance, height):
+    emptyShelf = container.shelves[len(container.shelves)-1]
+
+    if(height == container.available_height):
+        container.shelves.remove(emptyShelf)
+        instance.shelves.remove(emptyShelf)
+    else:
+        emptyRect=emptyShelf.wastemap.freerects[0]
+        new_y = container.height-container.available_height+height
+        
+        container.available_height-=height
+        
+        emptyRect.height=container.available_height
+        emptyRect.y=new_y
+        
+        emptyShelf.vertical_offset=new_y
+        emptyShelf.height=container.available_height
+
+
+def moveShelf(container1, container2, shelf, instance):
+    #rimuovo i rettangoli da container1 e li metto in container2
+    removeItems(container1.items, shelf.items)
+    container2.items+=shelf.items
+
     #aggiorno le coordinate dei rettangoli dello scaffale
     updateShelfRectangles(container2, shelf)
 
-    #rimuovo i rettangoli da container1 e li metto in container2
-    removeItems(container1.items, shelf.items)
-    container2+=shelf.items
+    #rimuovo l'ultimo scaffale del container2 dovrebbe contenere sempre il rettangolo vuoto
+    redimLastShelf(container2, instance, shelf.height)#container2.shelves.remove(container2.shelves[len(container2.shelves)-1])    
 
     #sposto lo scaffale da container1 a container2
     container1.shelves.remove(shelf)
     container2.shelves.append(shelf)
 
+    #creo uno scaffale con un rettangolo vuoto dentro per sostituire lo scaffale spostato
+    if(len(container1.shelves)>1):
+        #FreeShelf = Shelf(container1.width, shelf.height, shelf.vertical_offset)
+        #freeRect = FreeRectangle(container1.width, shelf.height, container1.x, shelf.vertical_offset)
+        #FreeShelf.wastemap.freerects.add(freeRect)
+        compactShelves(container1,instance)
+        #container1.shelves.append(FreeShelf)
+        #instance.shelves.append(FreeShelf)
+    else:
+        #c'è solo uno scaffale quindi elimino il container
+        instance.shelves.remove(container1.shelves[0])
+        instance.containers.remove(container1)
+
+    compactShelves(container2,instance)
+
+def searchBestShelf(container, shelves):
+    best_height = 0
+    best_shelf = None
+
+    for shelf in shelves:
+        if (container.available_height > shelf.height and shelf.height > best_height
+            and shelf not in container.shelves and len(shelf.items) > 0):
+            
+            best_shelf = shelf
+            best_height = shelf.height
+
+    return best_shelf
 
 def interShelfborhood(instance):
     
-    containers = instance.containers.sort(key=lambda x: (x.available_height), reverse=True)
-    shelves = instance.shelves.sort(key=lambda x: (x.height), reverse=True)
-    
-    for i in range(0, len(containers)):
-        for j in range(0, len(shelves)):
-            if(containers[i].available_height >= shelves[j].height and shelves[j] not in containers[i].shelves):
-                moveShelf(getContainerShelf(containers[i+1:], containers[i], shelves[j]), shelves[j])
-                return True
+    if(len(instance.containers) > 1):
+        #ordino i container per spazio libero, cerco di riempire prima i più stretti
+        instance.containers.sort(key=lambda x: (x.available_height))
+        containers = instance.containers
+
+        instance.shelves.sort(key=lambda x: (x.height))
+        shelves=instance.shelves
+        #ciclo finchè non trovo uno container che possa contenere uno scaffale di un altro container
+        for i in range(0, len(containers)):
+            if(containers[i].available_height < containers[i].height/2):
+                best_shelf=searchBestShelf(containers[i], shelves)    
+                
+                #print("J",j)
+                if(best_shelf):
+                    #provare a cercare nei container successivi al mio (Taboo List)
+                    print("spostiamo uno scaffale")
+                    moveShelf(getContainerShelf(containers, best_shelf), containers[i], best_shelf, instance)
+                    return True
 
     return False
-"""
+
 
 def rotateWide(rectangles):
     for r in rectangles:
@@ -266,6 +361,7 @@ def greedyShelf(instance):
                     
                     sh=Shelf(cont.width, shelf_height, cont.height-cont.available_height)
                     cont.shelves.append(sh)
+                    instance.shelves.append(sh)
                     cont.available_height-=shelf_height
                     
                     #finchè ci stanno inserisce rettangoli nello scaffale           
@@ -293,6 +389,7 @@ def greedyShelf(instance):
                         freeRect = FreeRectangle(cont.width, cont.available_height, cont.x, cont.height-cont.available_height)
                         sh=Shelf(cont.width, cont.available_height, cont.height-cont.available_height)
                         cont.shelves.append(sh)
+                        instance.shelves.append(sh)
                         sh.wastemap.freerects.add(freeRect)
                         #print(i)
                         
@@ -419,6 +516,7 @@ class Neight_2(ToolBase):
         instance = self.instances[instance_index]
 
         print(instance)
+        interShelfborhood(instance)
         #intraNeighborhood(instance)
         drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
 

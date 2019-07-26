@@ -26,6 +26,7 @@ class Instance():
 
     def reset(self):
         self.containers = []
+        self.shelves = []
         self.greedyDone = False
 
     def wastedArea(self):
