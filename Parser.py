@@ -13,17 +13,24 @@ class Instance():
         self.container_h = container_h
         self.container_w = container_w
         self.container_area = self.container_h * self.container_w
+        
         self.containers = []
         self.items = []
         self.itemID = -1
+        self.greedyDone = False
 
     def addItem(self, item_h, item_w):
         self.itemID += 1
         self.items.append(Item(item_w, item_h, id=self.itemID))
 
+    def reset(self):
+        self.containers = []
+        self.greedyDone = False
+
     def wastedArea(self):
         freeArea = 0
-        containerArea = self.container_area*len(self.containers)
+        containerArea = self.container_area * len(self.containers)
+        print("Containers:", len(self.containers))
         
         for c in self.containers:
             #print(c.wastemap.free_area)

@@ -41,6 +41,7 @@ def draw_bin(container, x):
     x.add_collection(pc3)
 
 def drawRect(fig, instance, block):
+    print("disegno")
     fig.clear()
 
 
@@ -50,12 +51,22 @@ def drawRect(fig, instance, block):
 
 
     #attenzione                 ceil
-    ax = fig.subplots(math.floor(math.sqrt(len(containers))), math.ceil(math.sqrt(len(containers))))
+    righe   = math.floor(math.sqrt(len(containers)))
+    colonne = math.ceil(math.sqrt(len(containers)))
+    ax = fig.subplots(righe, colonne)
     
-    if len(containers) == 1:
+    if righe == 1 and colonne == 1:
         draw_bin(containers[0], ax)
         ax.axis('equal')
         ax.axis("off")
+    elif righe == 1 and colonne > 1:
+        i=0
+        for x in ax:
+            if(i < len(containers)):
+                draw_bin(containers[i], x)
+                i+=1
+            x.axis('equal')
+            x.axis("off")
     else:
         i=0
         for y in ax:
@@ -66,13 +77,12 @@ def drawRect(fig, instance, block):
                 x.axis('equal')
                 x.axis("off")
 
-    fig.suptitle("Used Bins: "+str(len(containers))+"    Lower bound: "+str(math.floor(instance.binLowerBound()))+"    Global wasted area: "+ str(math.floor(instance.wastedArea()))+"%")
+    fig.suptitle("Instance: "+ instance.ainst +"    Used Bins: "+str(len(containers))+"    Lower bound: "+str(math.floor(instance.binLowerBound()))+"    Global wasted area: "+ str(math.floor(instance.wastedArea()))+"%")
     
 
-    #fig.canvas.manager.toolbar.add_tool(tm.get_tool("newtool"), "toolgroup")
-
-    plt.show(block)
-
+    fig.canvas.draw()
+    
+    #plt.show(block=block)
     #plt.pause(0.5)
     #plt.close()
 
@@ -154,61 +164,64 @@ def rotateWide(rectangles):
     return rectangles
 
 def greedyShelf(instance):
-    #rect_inserted = []
-    rectangles = instance.items
-    rectangles = rotateWide(rectangles)
-    rectangles.sort(key=lambda x: (x.height,x.width), reverse=True)#(x.h,x.w), reverse=True)
+    if not instance.greedyDone:
+        print("Eseguo greedy")
+        #rect_inserted = []
+        rectangles = instance.items
+        rectangles = rotateWide(rectangles)
+        rectangles.sort(key=lambda x: (x.height,x.width), reverse=True)#(x.h,x.w), reverse=True)
 
-    cont_height = instance.container_h
+        cont_height = instance.container_h
 
-    shelf_height=rectangles[0].height    
+        shelf_height=rectangles[0].height    
 
-    #se il primo rettangolo sta nel bin comincio a inserire 
-    if(shelf_height <= cont_height):
-        i=0        
-        while i < len(rectangles):          
-            cont=Container(instance.container_h, instance.container_w,0,0)
-            instance.containers.append(cont)
+        #se il primo rettangolo sta nel bin comincio a inserire 
+        if(shelf_height <= cont_height):
+            i=0        
+            while i < len(rectangles):          
+                cont=Container(instance.container_h, instance.container_w,0,0)
+                instance.containers.append(cont)
 
-            hlimit=False
+                hlimit=False
 
-            available_height=cont_height
-            
-            while(not hlimit):                      
+                available_height=cont_height
                 
-                sh=Shelf(cont.width, shelf_height, cont.height-available_height)
-                cont.shelves.append(sh)
-                available_height-=shelf_height
-                
-                #finchè ci stanno inserisce rettangoli nello scaffale           
-                while(i < len(rectangles) and sh._item_fits_shelf(rectangles[i])):
-                    sh.insert(rectangles[i])
-                    cont.items.append(rectangles[i])
-                    i+=1
-                
-                #controlla se sono finiti i rettangoli oppure se lo scaffale nuovo supererebbe l'altezza massima
-                if i >= len(rectangles):
-                    hlimit=True
-                else:
+                while(not hlimit):                      
                     
-                    shelf_height = rectangles[i].height
+                    sh=Shelf(cont.width, shelf_height, cont.height-available_height)
+                    cont.shelves.append(sh)
+                    available_height-=shelf_height
                     
-                    if available_height < shelf_height:
+                    #finchè ci stanno inserisce rettangoli nello scaffale           
+                    while(i < len(rectangles) and sh._item_fits_shelf(rectangles[i])):
+                        sh.insert(rectangles[i])
+                        cont.items.append(rectangles[i])
+                        i+=1
+                    
+                    #controlla se sono finiti i rettangoli oppure se lo scaffale nuovo supererebbe l'altezza massima
+                    if i >= len(rectangles):
                         hlimit=True
-                        #print(y)
-                
-                if available_height < shelf_height or i >= len(rectangles):
-                    #aggiunge lo spazio vuoto in alto alla wastemap
-                    freeRect = FreeRectangle(cont.width, available_height, cont.x, cont.height-available_height)
-                    cont.wastemap.freerects.add(freeRect)
-                    #print(i)
+                    else:
+                        
+                        shelf_height = rectangles[i].height
+                        
+                        if available_height < shelf_height:
+                            hlimit=True
+                            #print(y)
                     
-                      
-                #aggiunge lo spazio libero dello scaffale alla wastemap
-                _add_to_wastemap(cont,sh)
-    else:
-        raise Exception("Rettangolo più alto non sta nel bin")
-    #return rect_inserted,wastemap,shelves
+                    if available_height < shelf_height or i >= len(rectangles):
+                        #aggiunge lo spazio vuoto in alto alla wastemap
+                        freeRect = FreeRectangle(cont.width, available_height, cont.x, cont.height-available_height)
+                        cont.wastemap.freerects.add(freeRect)
+                        #print(i)
+                        
+                        
+                    #aggiunge lo spazio libero dello scaffale alla wastemap
+                    _add_to_wastemap(cont,sh)
+            instance.greedyDone = True
+        else:
+            raise Exception("Rettangolo più alto non sta nel bin")
+        #return rect_inserted,wastemap,shelves
 
 def _add_to_wastemap(cont,shelf):
         """ Add lost space above items to the wastemap """
@@ -240,30 +253,97 @@ def genGUI():
     #fig.canvas.manager.toolbar._Button("NEXT", "forward_large", <ACTION_NEXT>)
     fig.show()
 
-class mycallback(ToolBase):
 
-    def __init__(self, *args, **kwargs):
+
+class resetInstance(ToolBase):
+
+    def __init__(self, *args, instances, **kwargs):
+        self.instances = instances
         super().__init__(*args, **kwargs)
 
     def trigger(self, *args, **kwargs):
         global fig
-        fig.clear()
-        plt.show()
-        print("welaaa")
+        global instance_index
+
+
+        instance = self.instances[instance_index]
+        
+        instance.reset()
+        print(instance)
+        greedyShelf(instance)
+        drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+
 
 class nextInstance(ToolBase):
 
     def __init__(self, *args, instances, **kwargs):
         self.instances = instances
-        self.counter = 0
         super().__init__(*args, **kwargs)
 
     def trigger(self, *args, **kwargs):
         global fig
-        instance = self.instances[self.counter]
-        self.counter += 1
+        global instance_index
+
+        if instance_index < len(self.instances) - 1:
+            instance_index += 1
+            instance = self.instances[instance_index]
+        
+
+            print(instance)
+            if not instance.greedyDone:
+                greedyShelf(instance)
+            drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+        else:
+            print("Instanze finite")
+
+class prevInstance(ToolBase):
+
+    def __init__(self, *args, instances, **kwargs):
+        self.instances = instances
+        super().__init__(*args, **kwargs)
+
+    def trigger(self, *args, **kwargs):
+        global fig
+        global instance_index
+        if instance_index > 0:
+            instance_index -= 1
+            instance = self.instances[instance_index]
+
+            print(instance)
+            if not instance.greedyDone:
+                greedyShelf(instance)
+            drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+        else:
+            print("Instanze finite")
+
+class Neight_1(ToolBase):
+
+    def __init__(self, *args, instances, **kwargs):
+        self.instances = instances
+        super().__init__(*args, **kwargs)
+
+    def trigger(self, *args, **kwargs):
+        global fig
+        global instance_index
+        instance = self.instances[instance_index]
+
         print(instance)
-        greedyShelf(instance)
+        intraNeighborhood(instance)
+        drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+
+class Neight_2(ToolBase):
+
+    def __init__(self, *args, instances, **kwargs):
+        self.instances = instances
+        super().__init__(*args, **kwargs)
+
+    def trigger(self, *args, **kwargs):
+        global fig
+        global instance_index
+        instance = self.instances[instance_index]
+
+        print(instance)
+        #intraNeighborhood(instance)
         drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
 
 
@@ -294,14 +374,31 @@ def main():
 
         #instances = instances[40:41]
 
+        global instance_index
+        instance_index = 0
+
         global fig
         fig = plt.figure()
-        fig.canvas.manager.toolmanager.add_tool('Neigh 1', mycallback)
-        fig.canvas.manager.toolmanager.add_tool('Neigh 2', mycallback)
+        fig.canvas.manager.toolmanager.add_tool('Neigh 1', Neight_1, instances=instances)
+        fig.canvas.manager.toolmanager.add_tool('Neigh 2', Neight_2, instances=instances)
         fig.canvas.manager.toolbar.add_tool('Neigh 1', 'neigh')
         fig.canvas.manager.toolbar.add_tool('Neigh 2', 'neigh')
-        fig.canvas.manager.toolmanager.add_tool('Next instance', nextInstance, instances=instances)
-        fig.canvas.manager.toolbar.add_tool('Next instance', 'instance')
+
+        fig.canvas.manager.toolmanager.add_tool('Prev <--', prevInstance, instances=instances)
+        fig.canvas.manager.toolbar.add_tool('Prev <--', 'instance')
+        fig.canvas.manager.toolmanager.add_tool('--> Next', nextInstance, instances=instances)
+        fig.canvas.manager.toolbar.add_tool('--> Next', 'instance')
+        fig.canvas.manager.toolmanager.add_tool('Reset', resetInstance, instances=instances)
+        fig.canvas.manager.toolbar.add_tool('Reset', 'instance2')
+        
+        
+
+        instance = instances[instance_index]
+        print(instance)
+        greedyShelf(instance)
+        drawRect(fig, instance, True)
+
+        
         plt.show()
 
         #for instance in instances:
