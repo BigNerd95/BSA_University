@@ -218,6 +218,7 @@ def updateShelfRectangles(container, shelf):
     for r in shelf.wastemap.freerects:
         r.y = r.y - old_offset + shelf.vertical_offset
 
+#riordina gli scaffali per altezza e mette in cima uno scaffale vuoto se serve
 def compactShelves(container, instance):
     #y=0
 
@@ -247,6 +248,9 @@ def compactShelves(container, instance):
         #shelf.vertical_offset=y
         #updateShelfRectangles(container, shelf)
         #y+=shelf.height
+
+#ridimensiono lo scaffale vuoto in cima al container
+"""
 def redimLastShelf(container, instance, height):
     emptyShelf = container.shelves[len(container.shelves)-1]
 
@@ -264,7 +268,7 @@ def redimLastShelf(container, instance, height):
         
         emptyShelf.vertical_offset=new_y
         emptyShelf.height=container.available_height
-
+"""
 
 def moveShelf(container1, container2, shelf, instance):
     #rimuovo i rettangoli da container1 e li metto in container2
@@ -274,8 +278,9 @@ def moveShelf(container1, container2, shelf, instance):
     #aggiorno le coordinate dei rettangoli dello scaffale
     updateShelfRectangles(container2, shelf)
 
-    #rimuovo l'ultimo scaffale del container2 dovrebbe contenere sempre il rettangolo vuoto
-    redimLastShelf(container2, instance, shelf.height)#container2.shelves.remove(container2.shelves[len(container2.shelves)-1])    
+    #ridimensiono l'ultimo scaffale del container2 dovrebbe contenere sempre il rettangolo vuoto
+    #dovrebbe essere più efficiente, invece che ricompattare gli scaffali
+    #redimLastShelf(container2, instance, shelf.height)#container2.shelves.remove(container2.shelves[len(container2.shelves)-1])    
 
     #sposto lo scaffale da container1 a container2
     container1.shelves.remove(shelf)
