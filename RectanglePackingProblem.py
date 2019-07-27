@@ -171,7 +171,7 @@ def intraNeighborhood(instance):
     best = None
 
     for container in instance.containers:             
-        for i in range(0, len(container.shelves)-1): 
+        for i in range(0, len(container.shelves)-2): 
             
             freeRect=getShelfFreeRect(container.shelves[i])
 
@@ -182,14 +182,17 @@ def intraNeighborhood(instance):
                         best_width=r.width
 
                 if(best!=None):
-                    moveRect(best, freeRect, container.shelves[i+1], container.shelves[i])
+                    moveRect(best, freeRect, container.shelves[i+1], container.shelves[i])                    
                     best=None
                     best_width=0
             #else:
                 #print("Non c'è il free rect")
             container.shelves[i].wastemap.rectangle_merge()
             #container.shelves[i].wastemap.rectangle_merge()
-            container.shelves[i+1].wastemap.rectangle_merge()
+            if(len(container.shelves[i+1].items)==0):
+                compactShelves(container, instance)
+            else:
+                container.shelves[i+1].wastemap.rectangle_merge()
             #container.shelves[i+1].wastemap.rectangle_merge()
 
 
