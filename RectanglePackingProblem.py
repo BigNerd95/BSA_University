@@ -54,6 +54,8 @@ def drawRect(fig, instance, block):
     #attenzione                 ceil
     righe   = math.floor(math.sqrt(len(containers)))
     colonne = math.ceil(math.sqrt(len(containers)))
+    if righe*colonne < len(containers):
+        righe += 1
     ax = fig.subplots(righe, colonne)
     
     if righe == 1 and colonne == 1:
