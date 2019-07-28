@@ -80,7 +80,7 @@ def drawRect(fig, instance, block):
                 x.axis('equal')
                 x.axis("off")
 
-    fig.suptitle("Instance: "+ instance.ainst +"    Used Bins: "+str(len(containers))+"    Lower bound: "+str(math.floor(instance.binLowerBound()))+"    Global wasted area: "+ str(math.floor(instance.wastedArea()))+"%")
+    fig.suptitle("Instance: "+ instance.ainst +"    Used Bins: "+str(len(containers))+"    Lower bound: "+str(math.ceil(instance.binLowerBound()))+"    Global wasted area: "+ str(math.floor(instance.wastedArea()))+"%")
     
 
     fig.canvas.draw()
