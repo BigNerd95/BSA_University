@@ -465,12 +465,12 @@ class searchInstance(ToolBase):
         global fig
         global instance_index
 
-
         instance = self.instances[instance_index]
         
-        #instance.reset()
+
         print(instance)
-        #greedyShelf(instance)
+        bsa(instance)
+        print("BSA terminata")
         drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
 
 class resetInstance(ToolBase):
