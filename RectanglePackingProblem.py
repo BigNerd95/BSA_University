@@ -91,7 +91,7 @@ def drawRect(fig, instance, block):
 
 def shiftAll(rect, shelf):
     for r in shelf.items:
-        if(r.x > rect.x):
+        if(r.x > rect.x and r.y == rect.y):
             #if(r.y + r.height < shelf.vertical_offset+shelf.height):                
             #    freeRect=getTopFreeRect(r, shelf)
             #    if(freeRect):
@@ -118,12 +118,19 @@ def shiftAll(rect, shelf):
     """
 
 #shelf1 contiene i rettangoli da shiftare (scaffale sopra), shelf2 scaffale sotto da riempire
-def moveRect(rect, freeRect, shelf1, shelf2):
-    shiftAll(rect, shelf1)
+def moveRect(rect, freeRect, shelf1, shelf2, shift=True):
+    
+    print(rect.id)
+    if shift:
+        shiftAll(rect, shelf1)
 
     #aumento e riduco lo spazio disponibile negli scaffali
-    shelf1.available_width += rect.width
-    shelf2.available_width -= rect.width
+
+    if(rect.y == shelf1.vertical_offset and shift):
+        shelf1.available_width += rect.width
+    
+    if(freeRect.y == shelf2.vertical_offset):
+        shelf2.available_width -= rect.width
 
     #sposto il rettangolo
     rect.x=freeRect.x
@@ -156,6 +163,27 @@ def moveRect(rect, freeRect, shelf1, shelf2):
     
     shelf2.wastemap.freerects.remove(freeRect)
     """
+
+def getRectOverRect(rect, shelf):
+    for r in shelf.items:
+        if(rect.x==r.x and rect.y+rect.height==r.y):
+            return r
+    return None
+
+def rectOverRect(rect, shelf):
+    for r in shelf.items:
+        if(rect.x==r.x and rect.y+rect.height==r.y):
+            return True
+    return False
+
+def rectUnderRect(rect, shelf):
+    under = []
+    for r in shelf.items:
+        if (r.x <= rect.x and r.y < rect.y):
+            under.append(r)
+    under.sort(key=lambda x: (x.x, x.y), reverse=True)
+
+    return under[0]
 
 def getTopFreeRect(rect, shelf):
     for r in shelf.wastemap.freerects:
@@ -345,6 +373,71 @@ def interShelfborhood(instance):
     return False
 
 
+def getShelf(item, container):
+
+    for shelf in container.shelves:
+        if(item in shelf.items):
+            return shelf
+
+def insertInContainer(container, shelf, item): 
+    container.items.append(item)
+    #shelf.items.append(item)
+
+
+def removeFromContainer(instance, container, item, shelf):
+    container.items.remove(item)
+    #shelf=getShelf(item, container)
+
+    #shelf.items.remove(item)
+    
+    if(len(container.items) == 0):
+        instance.containers.remove(container)
+        instance.shelves.remove(shelf)
+    else:
+        if(len(shelf.items)==0):
+            container.shelves.remove(shelf)
+            instance.shelves.remove(shelf)
+            compactShelves(container, instance)
+        """else:
+            shiftAll(item, shelf)
+            shelf.wastemap.freerects.clear()
+            shelf.available_width += item.width
+            _add_to_wastemap(shelf)
+            print("asdasd")"""
+
+def pushDownRect(item,shelf):
+
+    rect = getRectOverRect(item,shelf)
+    if(rect): 
+        pushDownRect(rect,shelf)
+        rect.y=item.y
+        return True
+    return False
+
+
+def interRectangle(instance):
+    #riordinare i bin per numero di pezzi (lower bound)
+    #containers = sorted(instance.containers,key=lambda x: (sum(map(lambda y: y.area,instance.containers.items))/len(instance.containers.items)))
+    containers = sorted(instance.containers,key=lambda x: x.areaPiecesRatio())
+    #cercare di spostare i rettangoli più grandi
+    for i,container1 in enumerate(containers):
+        items = sorted(container1.items, key=lambda x: x.area)
+        for item in items:
+            for container2 in containers[i+1:]:
+                for shelf2 in container2.shelves:
+                    if(shelf2._item_fits_shelf(item)):
+                        #shelf.wastemap.insert(item)
+                        _, freeRect, rot = shelf2.wastemap._find_best_score(item)
+                        shelf1=getShelf(item, container1)
+                        avvenuto = pushDownRect(item,shelf1)
+                        moveRect(item, freeRect, shelf1, shelf2, not avvenuto)                     
+                        insertInContainer(container2, shelf2, item)
+                        removeFromContainer(instance, container1, item, shelf1)
+                        return True
+
+    return False
+
+
 def rotateWide(rectangles):
     for r in rectangles:
         if(r.width > r.height):
@@ -358,10 +451,13 @@ def bsa(instance):
     n1=True
     n2=True
 
-    while(n1 or n2):
+    cont = 100
+    while((n1 or n2) and cont > 0):
         n1=intraNeighborhood(instance)
         if(not n1):
             n2=interShelfborhood(instance)
+
+        cont -= 1
 
 def greedyShelf(instance):
     if not instance.greedyDone:
@@ -425,17 +521,31 @@ def greedyShelf(instance):
             raise Exception("Rettangolo più alto non sta nel bin")
         #return rect_inserted,wastemap,shelves
 
+def genHorizontalFreeRect(rect, shelf):
+    if(rect.y != shelf.vertical_offset):
+        #print(rect.id)
+        underRect = rectUnderRect(rect, shelf)
+        #print(underRect.id)
+        freeWidth = (underRect.x+underRect.width) - (rect.width+rect.x)
+        freeHeight = (shelf.vertical_offset + shelf.height) - (rect.y)
+        freeX = rect.x + rect.width
+        freeY = rect.y
+        freeRect = FreeRectangle(freeWidth, freeHeight, freeX, freeY)
+        shelf.wastemap.freerects.add(freeRect)
+
 def _add_to_wastemap(shelf):
         """ Add lost space above items to the wastemap """
         # Add space above items to wastemap
         for item in shelf.items:
-            if item.height < shelf.height:
+            if item.height < shelf.height and not rectOverRect(item, shelf):
                 freeWidth = item.width
-                freeHeight = shelf.height - item.height
+                freeHeight = (shelf.vertical_offset + shelf.height) - (item.height + item.y)
                 freeX = item.x
-                freeY = item.height + shelf.vertical_offset
+                freeY = item.y + item.height
                 freeRect = FreeRectangle(freeWidth, freeHeight, freeX, freeY)
                 shelf.wastemap.freerects.add(freeRect)
+                genHorizontalFreeRect(item,shelf)
+
         # Move remaining shelf width to wastemap
         if shelf.available_width > 0:
             freeWidth = shelf.available_width
@@ -578,6 +688,7 @@ class Neigh_3(ToolBase):
         instance = self.instances[instance_index]
 
         print(instance)
+        interRectangle(instance)
         #interShelfborhood(instance)
         #intraNeighborhood(instance)
         drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA

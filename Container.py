@@ -11,3 +11,11 @@ class Container(Item):
         self.shelves = []
         #self.wastemap = Guillotine(0, 0, rotation = False, heuristic='best_area')
         self.available_height=height
+
+    def areaPiecesRatio(self):
+    	areaItems=0
+
+    	for item in self.items:
+    		areaItems+=item.area
+
+    	return areaItems/len(self.items)

@@ -23,7 +23,7 @@ class FreeRectangle(Item):#typing.NamedTuple('FreeRectangle', [('width', int), (
 
 
 class Guillotine:
-    def __init__(self, x: int = 8,
+    def __init__(self, shelf, x: int = 8,
                  y: int = 4,
                  rotation: bool = True,
                  heuristic: str = 'best_area_fit',
@@ -56,7 +56,8 @@ class Guillotine:
             self.freerects = SortedListWithKey(iterable=None, key=lambda x: x.area)
         else:
             self.freerects = SortedListWithKey([FreeRectangle(self.x, self.y, 0, 0)], key=lambda x: x.area)
-        self.items = [] # type: List[Item]
+        self.shelf=shelf
+        self.items = shelf.items # type: List[Item]
         self.rotation = rotation
 
 
@@ -138,8 +139,9 @@ class Guillotine:
         """ Helper method for adding items to the bin """
         if rotate:
             item.rotate()
-        item.x, item.y = x, y
-        self.items.append(item)
+        #item.x, item.y = x, y
+        #self.items.append(item)
+        self.shelf.insert(item)
         self.free_area -= item.area
 
 
@@ -178,7 +180,8 @@ class Guillotine:
                                                 freerect.height,
                                                 freerect.x,
                                                 freerect.y)
-                    self.freerects.remove(freerect)
+                    if(freerect in self.freerects):
+                        self.freerects.remove(freerect)
                     self.freerects.remove(match_rect)
                     self.freerects.add(merged_rect)
 

@@ -12,7 +12,7 @@ class Shelf:
 		self.area = self.available_width * self.height
 		self.vertical_offset = v_offset
 		self.items = [] # type: List[Item]
-		self.wastemap = Guillotine(0, 0, rotation = False, heuristic='best_area')
+		self.wastemap = Guillotine(self, 0, 0, rotation = False, heuristic='best_area')
 
 	def __repr__(self):
 		return str(self.__dict__)
