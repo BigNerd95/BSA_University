@@ -422,6 +422,9 @@ def pushDownRect(item,shelf):
     stack = []
     rect = getRectOverRect(item,shelf)
 
+    if(rect and item.width > rect.width):
+        shelf.available_width=shelf.available_width+item.width-rect.width
+
     if(rect):
         while (rect):
             stack.append(rect)
