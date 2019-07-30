@@ -1,6 +1,7 @@
 import re
 import sys
 from Item import Item
+from TabooList import TabooList
 
 class Instance():
 
@@ -19,6 +20,7 @@ class Instance():
         self.shelves=[]
         self.itemID = -1
         self.greedyDone = False
+        self.tabooList = TabooList()
 
     def addItem(self, item_h, item_w):
         self.itemID += 1
@@ -27,6 +29,7 @@ class Instance():
     def reset(self):
         self.containers = []
         self.shelves = []
+        self.tabooList=TabooList()
         self.greedyDone = False
 
     def wastedArea(self):

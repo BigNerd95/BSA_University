@@ -11,6 +11,7 @@ from Container import Container
 from Shelf import Shelf
 import Parser
 import sys
+from TabooList import Move
 
 def label(rect, text, bin):
     x = rect.get_x() + rect.get_width()/2
@@ -373,8 +374,14 @@ def interShelfborhood(instance):
                 if(best_shelf):
                     #provare a cercare nei container successivi al mio (Taboo List)
                     print("spostiamo uno scaffale")
-                    moveShelf(getContainerShelf(containers, best_shelf), containers[i], best_shelf, instance)
-                    return True
+                    move = Move(moveShelf, {getContainerShelf(containers, best_shelf), containers[i], best_shelf, instance})
+                                        
+                    if instance.tabooList.contains(move):
+                        moveShelf(getContainerShelf(containers, best_shelf), containers[i], best_shelf, instance)
+                        instance.tabooList.insert(move)
+                        return True
+                    instance.tabooList.insert(move)
+                    
 
     return False
 
@@ -451,11 +458,20 @@ def interRectangle(instance):
                         _, freeRect, rot = shelf2.wastemap._find_best_score(item)
                         if(freeRect):
                             shelf1=getShelf(item, container1)
-                            avvenuto = pushDownRect(item, shelf1)
-                            moveRect(item, freeRect, shelf1, shelf2, not avvenuto)                     
-                            insertInContainer(container2, shelf2, item)
-                            removeFromContainer(instance, container1, item, shelf1)
-                            return True
+                            
+                            move = Move(moveRect, {item, freeRect, shelf1, shelf2, True})
+                                        
+                            if instance.tabooList.contains(move):                                
+                                avvenuto = pushDownRect(item, shelf1)
+                                moveRect(item, freeRect, shelf1, shelf2, not avvenuto)                     
+                                insertInContainer(container2, shelf2, item)
+                                removeFromContainer(instance, container1, item, shelf1)
+                            
+                                instance.tabooList.insert(move)
+                                                        
+                                return True
+
+                        instance.tabooList.insert(move)
 
     return False
 
@@ -473,14 +489,14 @@ def bsa(instance):
     n2=False
     n3=False
 
-    cont = 100
-    while((n1 or n2 or n3) and cont > 0):
+    #cont = 100
+    while((n1 or n2 or n3)):#and cont > 0):
         n1=intraNeighborhood(instance)
         if(not n1):
             n2=interShelfborhood(instance)
             if(not n2):
                 n3=interRectangle(instance)
-        cont -= 1
+        #cont -= 1
 
 def greedyShelf(instance):
     if not instance.greedyDone:
