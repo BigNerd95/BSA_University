@@ -176,6 +176,12 @@ def rectOverRect(rect, shelf):
             return True
     return False
 
+def rectOnRight(rect,shelf):
+    for r in shelf.items:
+        if(rect.y==r.y and rect.x+rect.width==r.x):
+            return True
+    return False
+
 def rectUnderRect(rect, shelf):
     under = []
     for r in shelf.items:
@@ -414,7 +420,6 @@ def pushDownRect(item,shelf):
         return True
     return False
 
-
 def interRectangle(instance):
     #riordinare i bin per numero di pezzi (lower bound)
     #containers = sorted(instance.containers,key=lambda x: (sum(map(lambda y: y.area,instance.containers.items))/len(instance.containers.items)))
@@ -428,15 +433,15 @@ def interRectangle(instance):
                     if(shelf2._item_fits_shelf(item)):
                         #shelf.wastemap.insert(item)
                         _, freeRect, rot = shelf2.wastemap._find_best_score(item)
-                        shelf1=getShelf(item, container1)
-                        avvenuto = pushDownRect(item,shelf1)
-                        moveRect(item, freeRect, shelf1, shelf2, not avvenuto)                     
-                        insertInContainer(container2, shelf2, item)
-                        removeFromContainer(instance, container1, item, shelf1)
-                        return True
+                        if(freeRect):
+                            shelf1=getShelf(item, container1)
+                            avvenuto = pushDownRect(item, shelf1)
+                            moveRect(item, freeRect, shelf1, shelf2, not avvenuto)                     
+                            insertInContainer(container2, shelf2, item)
+                            removeFromContainer(instance, container1, item, shelf1)
+                            return True
 
     return False
-
 
 def rotateWide(rectangles):
     for r in rectangles:
@@ -522,7 +527,7 @@ def greedyShelf(instance):
         #return rect_inserted,wastemap,shelves
 
 def genHorizontalFreeRect(rect, shelf):
-    if(rect.y != shelf.vertical_offset):
+    if(rect.y != shelf.vertical_offset and not rectOnRight(rect,shelf)):
         #print(rect.id)
         underRect = rectUnderRect(rect, shelf)
         #print(underRect.id)
@@ -537,14 +542,14 @@ def _add_to_wastemap(shelf):
         """ Add lost space above items to the wastemap """
         # Add space above items to wastemap
         for item in shelf.items:
-            if item.height < shelf.height and not rectOverRect(item, shelf):
+            if item.y+item.height < shelf.height+shelf.vertical_offset and not rectOverRect(item, shelf):
                 freeWidth = item.width
                 freeHeight = (shelf.vertical_offset + shelf.height) - (item.height + item.y)
                 freeX = item.x
                 freeY = item.y + item.height
                 freeRect = FreeRectangle(freeWidth, freeHeight, freeX, freeY)
                 shelf.wastemap.freerects.add(freeRect)
-                genHorizontalFreeRect(item,shelf)
+            genHorizontalFreeRect(item,shelf)
 
         # Move remaining shelf width to wastemap
         if shelf.available_width > 0:
