@@ -172,6 +172,8 @@ def intraNeighborhood(instance):
     best_width = 0
     best = None
 
+    change=False
+
     for container in instance.containers:             
         for i in range(0, len(container.shelves)-2): 
             
@@ -187,6 +189,7 @@ def intraNeighborhood(instance):
                     moveRect(best, freeRect, container.shelves[i+1], container.shelves[i])                    
                     best=None
                     best_width=0
+                    change=True
             #else:
                 #print("Non c'è il free rect")
             container.shelves[i].wastemap.rectangle_merge()
@@ -196,6 +199,8 @@ def intraNeighborhood(instance):
             else:
                 container.shelves[i+1].wastemap.rectangle_merge()
             #container.shelves[i+1].wastemap.rectangle_merge()
+
+    return change
 
 
 def getContainerShelf(containers, shelf):
@@ -320,11 +325,11 @@ def interShelfborhood(instance):
     
     if(len(instance.containers) > 1):
         #ordino i container per spazio libero, cerco di riempire prima i più stretti
-        instance.containers.sort(key=lambda x: (x.available_height))
-        containers = instance.containers
+        #instance.containers.sort(key=lambda x: (x.available_height))
+        containers = sorted(instance.containers,key=lambda x: (x.available_height))
 
-        instance.shelves.sort(key=lambda x: (x.height))
-        shelves=instance.shelves
+        #instance.shelves.sort(key=lambda x: (x.height))
+        shelves=sorted(instance.shelves,key=lambda x: (x.height))
         #ciclo finchè non trovo uno container che possa contenere uno scaffale di un altro container
         for i in range(0, len(containers)):
             if(containers[i].available_height < containers[i].height/2):
@@ -345,6 +350,18 @@ def rotateWide(rectangles):
         if(r.width > r.height):
             r.rotate()
     return rectangles
+
+def bsa(instance):
+    instance.reset()
+    greedyShelf(instance)
+
+    n1=True
+    n2=True
+
+    while(n1 or n2):
+        n1=intraNeighborhood(instance)
+        if(not n1):
+            n2=interShelfborhood(instance)
 
 def greedyShelf(instance):
     if not instance.greedyDone:
