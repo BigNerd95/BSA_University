@@ -412,13 +412,29 @@ def removeFromContainer(instance, container, item, shelf):
             print("asdasd")"""
 
 def pushDownRect(item,shelf):
-
+    stack = []
     rect = getRectOverRect(item,shelf)
-    if(rect): 
-        pushDownRect(rect,shelf)
-        rect.y=item.y
+
+    if(rect):
+        while (rect):
+            stack.append(rect)
+            rect = getRectOverRect(rect,shelf)
+
+        for r in stack:
+            r.y-=item.height
+        
         return True
     return False
+    """rect = getRectOverRect(item,shelf)
+    if(rect): 
+        pushDownRect(rect,shelf)
+        print("rect sopra "+str(rect.id)+" rect sotto "+str(item.id))
+        print("altezza sopra "+str(rect.height)+" altezza sotto "+str(item.height))
+        print("y sopra "+str(rect.y)+" y sotto "+str(item.y))
+        rect.y -= item.height
+
+        return True
+    return False"""
 
 def interRectangle(instance):
     #riordinare i bin per numero di pezzi (lower bound)
