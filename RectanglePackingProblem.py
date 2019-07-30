@@ -120,7 +120,7 @@ def shiftAll(rect, shelf):
 #shelf1 contiene i rettangoli da shiftare (scaffale sopra), shelf2 scaffale sotto da riempire
 def moveRect(rect, freeRect, shelf1, shelf2, shift=True):
     
-    print(rect.id)
+    #print(rect.id)
     if shift:
         shiftAll(rect, shelf1)
 
@@ -454,14 +454,16 @@ def bsa(instance):
     greedyShelf(instance)
 
     n1=True
-    n2=True
+    n2=False
+    n3=False
 
     cont = 100
-    while((n1 or n2) and cont > 0):
+    while((n1 or n2 or n3) and cont > 0):
         n1=intraNeighborhood(instance)
         if(not n1):
             n2=interShelfborhood(instance)
-
+            if(not n2):
+                n3=interRectangle(instance)
         cont -= 1
 
 def greedyShelf(instance):
