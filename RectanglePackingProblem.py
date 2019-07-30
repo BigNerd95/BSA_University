@@ -438,6 +438,24 @@ def genGUI():
     #fig.canvas.manager.toolbar._Button("NEXT", "forward_large", <ACTION_NEXT>)
     fig.show()
 
+class searchInstance(ToolBase):
+
+    def __init__(self, *args, instances, **kwargs):
+        self.instances = instances
+        super().__init__(*args, **kwargs)
+
+    def trigger(self, *args, **kwargs):
+        global fig
+        global instance_index
+
+
+        instance = self.instances[instance_index]
+        
+        #instance.reset()
+        print(instance)
+        #greedyShelf(instance)
+        drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+
 class resetInstance(ToolBase):
 
     def __init__(self, *args, instances, **kwargs):
@@ -499,7 +517,7 @@ class prevInstance(ToolBase):
         else:
             print("Instanze finite")
 
-class Neight_1(ToolBase):
+class Neigh_1(ToolBase):
 
     def __init__(self, *args, instances, **kwargs):
         self.instances = instances
@@ -514,7 +532,7 @@ class Neight_1(ToolBase):
         intraNeighborhood(instance)
         drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO QUESTA RIGA
 
-class Neight_2(ToolBase):
+class Neigh_2(ToolBase):
 
     def __init__(self, *args, instances, **kwargs):
         self.instances = instances
@@ -530,6 +548,22 @@ class Neight_2(ToolBase):
         #intraNeighborhood(instance)
         drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
 
+
+class Neigh_3(ToolBase):
+
+    def __init__(self, *args, instances, **kwargs):
+        self.instances = instances
+        super().__init__(*args, **kwargs)
+
+    def trigger(self, *args, **kwargs):
+        global fig
+        global instance_index
+        instance = self.instances[instance_index]
+
+        print(instance)
+        #interShelfborhood(instance)
+        #intraNeighborhood(instance)
+        drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
 
 def main():
     
@@ -563,15 +597,20 @@ def main():
 
         global fig
         fig = plt.figure()
-        fig.canvas.manager.toolmanager.add_tool('Neigh 1', Neight_1, instances=instances)
-        fig.canvas.manager.toolmanager.add_tool('Neigh 2', Neight_2, instances=instances)
+        fig.canvas.manager.toolmanager.add_tool('Neigh 1', Neigh_1, instances=instances)
         fig.canvas.manager.toolbar.add_tool('Neigh 1', 'neigh')
+        fig.canvas.manager.toolmanager.add_tool('Neigh 2', Neigh_2, instances=instances)
         fig.canvas.manager.toolbar.add_tool('Neigh 2', 'neigh')
+        fig.canvas.manager.toolmanager.add_tool('Neigh 3', Neigh_3, instances=instances)
+        fig.canvas.manager.toolbar.add_tool('Neigh 3', 'neigh')
 
         fig.canvas.manager.toolmanager.add_tool('Prev <--', prevInstance, instances=instances)
         fig.canvas.manager.toolbar.add_tool('Prev <--', 'instance')
         fig.canvas.manager.toolmanager.add_tool('--> Next', nextInstance, instances=instances)
         fig.canvas.manager.toolbar.add_tool('--> Next', 'instance')
+
+        fig.canvas.manager.toolmanager.add_tool('Search', searchInstance, instances=instances)
+        fig.canvas.manager.toolbar.add_tool('Search', 'instance2')
         fig.canvas.manager.toolmanager.add_tool('Reset', resetInstance, instances=instances)
         fig.canvas.manager.toolbar.add_tool('Reset', 'instance2')
         
