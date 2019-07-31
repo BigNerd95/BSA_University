@@ -538,7 +538,7 @@ def tryToMove(item, container1, containers, instance):
             if(shelf2._item_fits_shelf(item)):
                 #shelf.wastemap.insert(item)
                 _, freeRect, rot = shelf2.wastemap._find_best_score(item)
-                if(freeRect):
+                if(freeRect and (freeRect.y == shelf2.vertical_offset or (freeRect.y > shelf2.vertical_offset and freeRect.x == rectUnderRect(freeRect, shelf2).x))):
                     shelf1=getShelf(item, container1)
                     
                     move = Move(moveRect, [item, container1, container2])
