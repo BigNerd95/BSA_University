@@ -811,11 +811,11 @@ def press(event, *args, **kwargs):
     print('press', event.key)
     sys.stdout.flush()
 
-    if event.key == "up":
+    if event.key == "right":
         nextI()
-    elif event.key == "down":
+    elif event.key == "left":
         prevI()
-    elif event.key == 't':
+    elif event.key == 'r':
         reset()
     elif event.key == 'b':
         search()
