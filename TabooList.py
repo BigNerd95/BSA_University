@@ -48,7 +48,7 @@ class TabooList:
             self.moves.pop(deleted)
 
     def contains(self, move):
-        print("TABOOLIST LENGHT:",len(self.moves))
+        #print("TABOOLIST LENGHT:",len(self.moves))
         #print(move)
         #print("---")
         for m in self.moves:

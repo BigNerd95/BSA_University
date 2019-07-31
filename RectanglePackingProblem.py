@@ -187,8 +187,8 @@ def realignAll(shelf):
 
     x = 0
     for tower in towers:
-        print("Tower")
-        [print(r.id) for r in tower[0]]
+        #print("Tower")
+        #[print(r.id) for r in tower[0]]
 
         for rect in tower[0]:
             rect.x = x
@@ -199,8 +199,8 @@ def realignAll(shelf):
 
 def moveRectInter(rect, freeRect, shelf1, shelf2):
     
-    print(len(shelf2.wastemap.freerects))
-    print("rect x "+str(rect.x)+" freeRect x "+str(freeRect.x)+"rect y "+str(rect.y)+" freeRect y "+str(freeRect.y))
+    #print(len(shelf2.wastemap.freerects))
+    #print("rect x "+str(rect.x)+" freeRect x "+str(freeRect.x)+"rect y "+str(rect.y)+" freeRect y "+str(freeRect.y))
     
     pushed = pushDownRect(rect, shelf1)
     #print(rect.id)
@@ -218,7 +218,7 @@ def moveRectInter(rect, freeRect, shelf1, shelf2):
     realignAll(shelf1)
     #realignAll(shelf2)
 
-    print("rect x "+str(rect.x)+" freeRect x "+str(freeRect.x)+"rect y "+str(rect.y)+" freeRect y "+str(freeRect.y))  
+    #print("rect x "+str(rect.x)+" freeRect x "+str(freeRect.x)+"rect y "+str(rect.y)+" freeRect y "+str(freeRect.y))  
 
     #ricalcolo i rettangoli liberi per gli scaffali
     shelf1.wastemap.freerects.clear()
@@ -257,9 +257,11 @@ def rectUnderRect(rect, shelf):
     for r in shelf.items:
         if (r.x <= rect.x and r.y < rect.y):
             under.append(r)
-    under.sort(key=lambda x: (x.x, x.y), reverse=True)
-
-    return under[0]
+    if(len(under) > 0):
+        under.sort(key=lambda x: (x.x, x.y), reverse=True)
+        return under[0]
+    else:
+        return None
 
 def getTopFreeRect(rect, shelf):
     for r in shelf.wastemap.freerects:
@@ -436,13 +438,16 @@ def interShelfborhood(instance):
         shelves=sorted(instance.shelves,key=lambda x: (x.height))
         #ciclo finchè non trovo uno container che possa contenere uno scaffale di un altro container
         for i in range(0, len(containers)):
+            #print("spostiamo uno scaffale")
+            #print("Containers len", len(containers))
+            #print("i ", i)
             if(containers[i].available_height < containers[i].height/2):
                 best_shelf=searchBestShelf(containers[i], shelves)    
                 
                 #print("J",j)
                 if(best_shelf):
                     #provare a cercare nei container successivi al mio (Taboo List)
-                    print("spostiamo uno scaffale")
+
                     move = Move(moveShelf, [best_shelf,getContainerShelf(containers, best_shelf),containers[i]])
                                         
                     if not instance.tabooList.contains(move):
@@ -574,12 +579,13 @@ def bsa(instance):
     n3=True
 
     cont = 1000
-    while(n1 or n2 or n3 and cont > 0):
+    while( (n1 or n2 or n3) and cont > 0):
         n1=intraNeighborhood(instance)
         if(not n1):
             n2=interShelfborhood(instance)
             if(not n2):
                 n3=interRectangle(instance)
+        #print("Cont", cont)
         cont -= 1
 
 def greedyShelf(instance):
@@ -649,12 +655,13 @@ def genHorizontalFreeRect(rect, shelf):
         #print(rect.id)
         underRect = rectUnderRect(rect, shelf)
         #print(underRect.id)
-        freeWidth = (underRect.x+underRect.width) - (rect.width+rect.x)
-        freeHeight = (shelf.vertical_offset + shelf.height) - (rect.y)
-        freeX = rect.x + rect.width
-        freeY = rect.y
-        freeRect = FreeRectangle(freeWidth, freeHeight, freeX, freeY)
-        shelf.wastemap.freerects.add(freeRect)
+        if(underRect):
+            freeWidth = (underRect.x+underRect.width) - (rect.width+rect.x)
+            freeHeight = (shelf.vertical_offset + shelf.height) - (rect.y)
+            freeX = rect.x + rect.width
+            freeY = rect.y
+            freeRect = FreeRectangle(freeWidth, freeHeight, freeX, freeY)
+            shelf.wastemap.freerects.add(freeRect)
 
 def _add_to_wastemap(shelf):
         """ Add lost space above items to the wastemap """
