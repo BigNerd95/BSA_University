@@ -22,3 +22,6 @@ class Item:
     def rotate(self) -> None:
         self.width, self.height = self.height, self.width
         self.rotated = False if self.rotated == True else True
+
+    def compare(self, item):
+        return self.id == item.id
