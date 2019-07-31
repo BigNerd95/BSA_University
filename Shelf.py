@@ -5,6 +5,8 @@ class Shelf:
 	"""
 	Shelf class represents of row of items on the sheet
 	"""
+	ID = 0
+	
 	def __init__(self, width: int, height: int, v_offset: int = 0) -> None:
 		self.height = height
 		self.width = width
@@ -13,6 +15,8 @@ class Shelf:
 		self.vertical_offset = v_offset
 		self.items = [] # type: List[Item]
 		self.wastemap = Guillotine(self, 0, 0, rotation = False, heuristic='best_area')
+		self.id = Shelf.ID
+		Shelf.ID += 1
 
 	def __repr__(self):
 		return str(self.__dict__)
@@ -41,3 +45,6 @@ class Shelf:
 				self.area = self.available_width * self.width
 				return True
 		return False
+
+	def compare(self, shelf):
+		return self.id == shelf.id
