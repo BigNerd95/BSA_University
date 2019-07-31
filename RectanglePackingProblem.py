@@ -607,133 +607,143 @@ def genGUI():
     #fig.canvas.manager.toolbar._Button("NEXT", "forward_large", <ACTION_NEXT>)
     fig.show()
 
-class searchInstance(ToolBase):
-
-    def __init__(self, *args, instances, **kwargs):
-        self.instances = instances
-        super().__init__(*args, **kwargs)
-
+class searchInstanceBtn(ToolBase):
     def trigger(self, *args, **kwargs):
-        global fig
-        global instance_index
+        search()
 
-        instance = self.instances[instance_index]
-        
+class resetInstanceBtn(ToolBase):
+    def trigger(self, *args, **kwargs):
+        reset()
+
+class nextInstanceBtn(ToolBase):
+    def trigger(self, *args, **kwargs):
+        nextI()
+
+class prevInstanceBtn(ToolBase):
+    def trigger(self, *args, **kwargs):
+        prevI()
+
+class Neigh_1Btn(ToolBase):
+    def trigger(self, *args, **kwargs):
+        neigh_1()
+
+class Neigh_2Btn(ToolBase):
+    def trigger(self, *args, **kwargs):
+        neigh_2()
+
+class Neigh_3Btn(ToolBase):
+    def trigger(self, *args, **kwargs):
+        neigh_3()
+
+def search():
+    global fig
+    global instances
+    global instance_index
+    instance = instances[instance_index]
+    print(instance)
+
+    bsa(instance)
+    print("BSA terminata")
+    drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+
+def reset():
+    global fig
+    global instances
+    global instance_index
+    instance = instances[instance_index]
+    print(instance)
+
+    instance.reset()
+    greedyShelf(instance)
+    drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+
+
+def nextI():
+    global fig
+    global instances
+    global instance_index
+
+    if instance_index < len(instances) - 1:
+        instance_index += 1
+        instance = instances[instance_index]
+    
 
         print(instance)
-        bsa(instance)
-        print("BSA terminata")
+        if not instance.greedyDone:
+            greedyShelf(instance)
         drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+    else:
+        print("Instanze finite")
 
-class resetInstance(ToolBase):
+def prevI():
+    global fig
+    global instances
+    global instance_index
 
-    def __init__(self, *args, instances, **kwargs):
-        self.instances = instances
-        super().__init__(*args, **kwargs)
+    if instance_index > 0:
+        instance_index -= 1
+        instance = instances[instance_index]
 
-    def trigger(self, *args, **kwargs):
-        global fig
-        global instance_index
-
-
-        instance = self.instances[instance_index]
-        
-        instance.reset()
         print(instance)
-        greedyShelf(instance)
+        if not instance.greedyDone:
+            greedyShelf(instance)
         drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+    else:
+        print("Instanze finite")
+
+def neigh_1():
+    global fig
+    global instances
+    global instance_index
+    instance = instances[instance_index]
+    print(instance)
+
+    intraNeighborhood(instance)
+    drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO QUESTA RIGA
+
+def neigh_2():
+    global fig
+    global instances
+    global instance_index
+    instance = instances[instance_index]
+    print(instance)
+
+    interShelfborhood(instance)
+    #intraNeighborhood(instance)
+    drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
 
 
-class nextInstance(ToolBase):
+def neigh_3():
+    global fig
+    global instances
+    global instance_index
+    instance = instances[instance_index]
+    print(instance)
 
-    def __init__(self, *args, instances, **kwargs):
-        self.instances = instances
-        super().__init__(*args, **kwargs)
-
-    def trigger(self, *args, **kwargs):
-        global fig
-        global instance_index
-
-        if instance_index < len(self.instances) - 1:
-            instance_index += 1
-            instance = self.instances[instance_index]
-        
-
-            print(instance)
-            if not instance.greedyDone:
-                greedyShelf(instance)
-            drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
-        else:
-            print("Instanze finite")
-
-class prevInstance(ToolBase):
-
-    def __init__(self, *args, instances, **kwargs):
-        self.instances = instances
-        super().__init__(*args, **kwargs)
-
-    def trigger(self, *args, **kwargs):
-        global fig
-        global instance_index
-        if instance_index > 0:
-            instance_index -= 1
-            instance = self.instances[instance_index]
-
-            print(instance)
-            if not instance.greedyDone:
-                greedyShelf(instance)
-            drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
-        else:
-            print("Instanze finite")
-
-class Neigh_1(ToolBase):
-
-    def __init__(self, *args, instances, **kwargs):
-        self.instances = instances
-        super().__init__(*args, **kwargs)
-
-    def trigger(self, *args, **kwargs):
-        global fig
-        global instance_index
-        instance = self.instances[instance_index]
-
-        print(instance)
-        intraNeighborhood(instance)
-        drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO QUESTA RIGA
-
-class Neigh_2(ToolBase):
-
-    def __init__(self, *args, instances, **kwargs):
-        self.instances = instances
-        super().__init__(*args, **kwargs)
-
-    def trigger(self, *args, **kwargs):
-        global fig
-        global instance_index
-        instance = self.instances[instance_index]
-
-        print(instance)
-        interShelfborhood(instance)
-        #intraNeighborhood(instance)
-        drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+    interRectangle(instance)
+    #interShelfborhood(instance)
+    #intraNeighborhood(instance)
+    drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
 
 
-class Neigh_3(ToolBase):
+def press(event, *args, **kwargs):
+    print('press', event.key)
+    sys.stdout.flush()
 
-    def __init__(self, *args, instances, **kwargs):
-        self.instances = instances
-        super().__init__(*args, **kwargs)
-
-    def trigger(self, *args, **kwargs):
-        global fig
-        global instance_index
-        instance = self.instances[instance_index]
-
-        print(instance)
-        interRectangle(instance)
-        #interShelfborhood(instance)
-        #intraNeighborhood(instance)
-        drawRect(fig, instance, True) # ATTENZIONE! CON BLOCK NON ESEGUE DOPO DO QUESTA RIGA
+    if event.key == "up":
+        nextI()
+    elif event.key == "down":
+        prevI()
+    elif event.key == 't':
+        reset()
+    elif event.key == 'b':
+        search()
+    elif event.key == '1':
+        neigh_1()
+    elif event.key == '2':
+        neigh_2()
+    elif event.key == '3':
+        neigh_3()
 
 def main():
     
@@ -747,44 +757,51 @@ def main():
 
     if len(sys.argv) > 1:
         filepath = sys.argv[1]
+        global  instances
         instances = Parser.parse(filepath)
-        #for i in instances:
-        #    print(i)
-        #rectangles.append(Rect(0,0,h,w))
-
-        #wastemap = Guillotine(0, 0, rotation = False, heuristic='best_area')
-        #print(len(instances))
-
-        #print(instances[9])
-        #greedyShelf(instances[9])
-        #drawRect(instances[9])
-
-
-        #instances = instances[40:41]
 
         global instance_index
         instance_index = 0
 
         global fig
         fig = plt.figure()
-        fig.canvas.manager.toolmanager.add_tool('Neigh 1', Neigh_1, instances=instances)
+        fig.canvas.manager.toolmanager.add_tool('Neigh 1', Neigh_1Btn)
         fig.canvas.manager.toolbar.add_tool('Neigh 1', 'neigh')
-        fig.canvas.manager.toolmanager.add_tool('Neigh 2', Neigh_2, instances=instances)
+        fig.canvas.manager.toolmanager.add_tool('Neigh 2', Neigh_2Btn)
         fig.canvas.manager.toolbar.add_tool('Neigh 2', 'neigh')
-        fig.canvas.manager.toolmanager.add_tool('Neigh 3', Neigh_3, instances=instances)
+        fig.canvas.manager.toolmanager.add_tool('Neigh 3', Neigh_3Btn)
         fig.canvas.manager.toolbar.add_tool('Neigh 3', 'neigh')
 
-        fig.canvas.manager.toolmanager.add_tool('Prev <--', prevInstance, instances=instances)
+        fig.canvas.manager.toolmanager.add_tool('Prev <--', prevInstanceBtn)
         fig.canvas.manager.toolbar.add_tool('Prev <--', 'instance')
-        fig.canvas.manager.toolmanager.add_tool('--> Next', nextInstance, instances=instances)
+        fig.canvas.manager.toolmanager.add_tool('--> Next', nextInstanceBtn)
         fig.canvas.manager.toolbar.add_tool('--> Next', 'instance')
 
-        fig.canvas.manager.toolmanager.add_tool('Search', searchInstance, instances=instances)
+        fig.canvas.manager.toolmanager.add_tool('Search', searchInstanceBtn)
         fig.canvas.manager.toolbar.add_tool('Search', 'instance2')
-        fig.canvas.manager.toolmanager.add_tool('Reset', resetInstance, instances=instances)
+        fig.canvas.manager.toolmanager.add_tool('Reset', resetInstanceBtn)
         fig.canvas.manager.toolbar.add_tool('Reset', 'instance2')
+         
+        fig.canvas.mpl_disconnect(fig.canvas.manager.key_press_handler_id)
+        plt.rcParams["keymap.all_axes"] = []
+        plt.rcParams["keymap.back"] = []
+        plt.rcParams["keymap.forward"] = []
+        plt.rcParams["keymap.fullscreen"] = []
+        plt.rcParams["keymap.grid"] = []
+        plt.rcParams["keymap.grid_minor"] = []
+        plt.rcParams["keymap.home"] = []
+        plt.rcParams["keymap.pan"] = []
+        plt.rcParams["keymap.quit"] = []
+        plt.rcParams["keymap.quit_all"] = []
+        plt.rcParams["keymap.save"] = []
+        plt.rcParams["keymap.xscale"] = []
+        plt.rcParams["keymap.yscale"] = []
+        plt.rcParams["keymap.zoom"] = []
         
-        
+
+        fig.canvas.mpl_connect('key_press_event', press)
+        print(plt.rcParams)
+
 
         instance = instances[instance_index]
         print(instance)
