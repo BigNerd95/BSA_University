@@ -273,6 +273,13 @@ def getShelfFreeRect(shelf):
         if(r.x == shelf.width - shelf.available_width and r.y==shelf.vertical_offset):
             return r
 
+"""
+Primo intorno:
+- cicla tutti i container 
+- prende gli scaffali a coppie
+- controlla se nello scaffale sotto c'e' un rettanoglo libero
+- se c'e' prende il rettangolo piu largo dello scaffale sopra e lo sposta
+"""
 def intraNeighborhood(instance):
     #best_height = 0
     best_width = 0
@@ -427,6 +434,14 @@ def searchBestShelf(container, shelves):
 
     return best_shelf
 
+"""
+Secondo intorno:
+- ordina i container per spazio disponibile in altezza (crescente)
+- ordina gli scaffali di tutti i container per altezza (crescente)
+- considera solo i container che sono piu' pieni di meta' (l'altezza disponibile e' minore della meta' della sua altezza)
+- prende il container con minor spazio disponibile e cerca lo scaffale piu' alto che ci stia dentro (cosi da riempirlo il piu possibile)
+- la tabulist permette di non ripetere le mosse che ha appena fatto
+"""
 def interShelfborhood(instance):
     
     if(len(instance.containers) > 1):
@@ -521,6 +536,13 @@ def pushDownRect(item,shelf):
         return True
     return False"""
 
+"""
+Terzo intorno:
+- ordina i container in base al rapporto area_occupata/numero_item (cosi da trovare i bin con tanti oggetti piccoli)
+- ordina gli oggetti per area (crescente)
+- prende il piu' piccolo e prova a spostarlo nel miglior rettangolo libero di un altro container
+- la tabulist permette di non ripetere le mosse che ha appena fatto
+"""
 def interRectangle(instance):
     #riordinare i bin per numero di pezzi (lower bound)
     #containers = sorted(instance.containers,key=lambda x: (sum(map(lambda y: y.area,instance.containers.items))/len(instance.containers.items)))
@@ -585,9 +607,17 @@ def bsa(instance):
             n2=interShelfborhood(instance)
             if(not n2):
                 n3=interRectangle(instance)
-        #print("Cont", cont)
         cont -= 1
 
+"""
+Soluzione iniziale:
+- ruota tutti i rettangoli in verticale
+- ordina i rettangoli per altezza e larghezza
+- li inserisce in uno scaffale alto come il primo rettangolo da inserire
+- quando non ci stanno piu in larghezza, verifica se ci sta un altro scaffale nel container
+- se non ci sta crea un altro container
+- ogni volta che riempe uno scaffale, vengono calcolati i rettangoli liberi
+"""
 def greedyShelf(instance):
     if not instance.greedyDone:
         print("Eseguo greedy")
